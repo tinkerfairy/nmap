@@ -164,12 +164,21 @@ static int ncat_listen_mode(void);
 static size_t parseproxy(char *str, struct sockaddr_storage *ss,
     size_t *sslen, unsigned short *portno)
 {
-    char *p = strrchr(str, ':');
+    char *p = str;
     char *q;
     long pno;
     int rc;
 
-    if (p != NULL) {
+    if (*p == '[') {
+        p = strchr(p, ']');
+        if (p == NULL)
+            bye("Invalid proxy IPv6 address \"%s\".", str);
+        ++str;
+        *p++ = '\0';
+    }
+
+    p = strchr(p, ':');
+    if (p != NULL && strchr(p + 1, ':') == NULL) {
         *p++ = '\0';
         pno = strtol(p, &q, 10);
         if (pno < 1 || pno > 0xFFFF || *q)
@@ -277,7 +286,7 @@ int main(int argc, char *argv[])
     struct host_list_node *allow_host_list = NULL;
     struct host_list_node *deny_host_list = NULL;
 
-	unsigned short proxyport;
+    unsigned short proxyport;
     int srcport = -1;
     char *source = NULL;
 
@@ -327,6 +336,7 @@ int main(int argc, char *argv[])
         {"proxy",           required_argument,  NULL,         0},
         {"proxy-type",      required_argument,  NULL,         0},
         {"proxy-auth",      required_argument,  NULL,         0},
+        {"proxy-dns",       required_argument,  NULL,         0},
         {"nsock-engine",    required_argument,  NULL,         0},
         {"test",            no_argument,        NULL,         0},
         {"ssl",             no_argument,        &o.ssl,       1},
@@ -490,6 +500,17 @@ int main(int argc, char *argv[])
                 if (o.proxy_auth)
                     bye("You can't specify more than one --proxy-auth.");
                 o.proxy_auth = optarg;
+            } else if (strcmp(long_options[option_index].name, "proxy-dns") == 0) {
+                if (strcmp(optarg, "none") == 0)
+                    o.proxydns = 0;
+                else if (strcmp(optarg, "local") == 0)
+                    o.proxydns = PROXYDNS_LOCAL;
+                else if (strcmp(optarg, "remote") == 0)
+                    o.proxydns = PROXYDNS_REMOTE;
+                else if (strcmp(optarg, "both") == 0)
+                    o.proxydns = PROXYDNS_LOCAL | PROXYDNS_REMOTE;
+                else
+                    bye("Invalid proxy DNS type.");
             } else if (strcmp(long_options[option_index].name, "nsock-engine") == 0) {
                 if (nsock_set_default_engine(optarg) < 0)
                     bye("Unknown or non-available engine: %s.", optarg);
@@ -645,8 +666,9 @@ int main(int argc, char *argv[])
 "      --broker               Enable Ncat's connection brokering mode\n"
 "      --chat                 Start a simple Ncat chat server\n"
 "      --proxy <addr[:port]>  Specify address of host to proxy through\n"
-"      --proxy-type <type>    Specify proxy type (\"http\" or \"socks4\" or \"socks5\")\n"
+"      --proxy-type <type>    Specify proxy type (\"http\", \"socks4\", \"socks5\")\n"
 "      --proxy-auth <auth>    Authenticate with HTTP or SOCKS proxy server\n"
+"      --proxy-dns <type>     Specify where to resolve proxy destination\n"
 
 #ifdef HAVE_OPENSSL
 "      --ssl                  Connect or listen with SSL\n"
@@ -732,7 +754,7 @@ int main(int argc, char *argv[])
             proxyport = DEFAULT_SOCKS4_PORT;
         else if (!strcmp(o.proxytype, "socks5") || !strcmp(o.proxytype, "5"))
             proxyport = DEFAULT_SOCKS5_PORT;
-        else 
+        else
             bye("Invalid proxy type \"%s\".", o.proxytype);
 
         /* Parse HTTP/SOCKS proxy address and store it in targetss.
@@ -802,9 +824,9 @@ int main(int argc, char *argv[])
             bye("Could not resolve source address \"%s\": %s.", source, gai_strerror(rc));
     }
 
-    host_list_to_set(&o.allowset, allow_host_list);
+    host_list_to_set(o.allowset, allow_host_list);
     host_list_free(allow_host_list);
-    host_list_to_set(&o.denyset, deny_host_list);
+    host_list_to_set(o.denyset, deny_host_list);
     host_list_free(deny_host_list);
 
     if (optind == argc) {

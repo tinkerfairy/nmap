@@ -7,15 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern "C" {
-  #include "lua.h"
-  #include "lauxlib.h"
-}
+#include "nse_lua.h"
 
 #include <locale.h>
 
-#include "nbase.h"
-#include "nmap_error.h"
+#include <nbase.h>
 
 #ifdef HAVE_PCRE_PCRE_H
 # include <pcre/pcre.h>

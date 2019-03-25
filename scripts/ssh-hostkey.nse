@@ -5,7 +5,9 @@ local ssh1 = require "ssh1"
 local ssh2 = require "ssh2"
 local stdnse = require "stdnse"
 local string = require "string"
+local stringaux = require "stringaux"
 local table = require "table"
+local tableaux = require "tableaux"
 local base64 = require "base64"
 local comm = require "comm"
 
@@ -167,7 +169,7 @@ local function check_keys(host, keys, f)
       -- the line might be hashed
       if string.match(parts[1], "^|") then
         -- split the first part of the line - it contains base64'ed salt and hashed hostname
-        local parts_hostname = stdnse.strsplit("|", parts[1])
+        local parts_hostname = stringaux.strsplit("|", parts[1])
         if #parts_hostname == 4 then
           -- check if the hash corresponds to the host being scanned
           local salt = base64.dec(parts_hostname[3])
@@ -189,7 +191,7 @@ local function check_keys(host, keys, f)
           end
         end
       else
-        if stdnse.contains(possible_host_names, parts[1]) then
+        if tableaux.contains(possible_host_names, parts[1]) then
           stdnse.debug2("Found an entry that matches: %s", parts[1])
           table.insert(keys_from_file, ("%s %s"):format(parts[2], parts[3]))
         else
@@ -367,7 +369,7 @@ local function postaction()
         }
       end
       -- discard duplicate IPs
-      if not stdnse.contains(hostkeys[fp], ip) then
+      if not tableaux.contains(hostkeys[fp], ip) then
         table.insert(hostkeys[fp], ip)
       end
     end

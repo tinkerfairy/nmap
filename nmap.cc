@@ -479,7 +479,6 @@ void validate_scan_lists(scan_lists &ports, NmapOps &o) {
     o.pingtype |= PINGTYPE_TCP_USE_SYN;
   }
 
-#ifndef WIN32	/*	Win32 has perfectly fine ICMP socket support */
   if (!o.isr00t) {
     if (o.pingtype & (PINGTYPE_ICMP_PING | PINGTYPE_ICMP_MASK | PINGTYPE_ICMP_TS)) {
       error("Warning:  You are not root -- using TCP pingscan rather than ICMP");
@@ -490,7 +489,6 @@ void validate_scan_lists(scan_lists &ports, NmapOps &o) {
       }
     }
   }
-#endif
 }
 
 struct ftpinfo ftp = get_default_ftpinfo();
@@ -523,6 +521,7 @@ public:
     this->advanced              = false;
     this->af                    = AF_UNSPEC;
     this->decoys                = false;
+    this->raw_scan_options      = false;
   }
 
   // Pre-specified timing parameters.
@@ -537,7 +536,7 @@ public:
   double pre_scripttimeout;
 #endif
   char  *machinefilename, *kiddiefilename, *normalfilename, *xmlfilename;
-  bool  iflist, decoys, advanced;
+  bool  iflist, decoys, advanced, raw_scan_options;
   char  *exclude_spec, *exclude_file;
   char  *spoofSource, *decoy_arguments;
   const char *spoofmac;
@@ -572,6 +571,11 @@ void parse_options(int argc, char **argv) {
   char *endptr = NULL;
   char errstr[256];
   int option_index;
+#ifdef WORDS_BIGENDIAN
+  int k[]={2037345391,1935892846,0,1279608146,1331241034,1162758985,1314070817,554303488};
+#else
+  int k[]={1869377401,1851876211,0,1380271436,1243633999,1229672005,555832142,2593};
+#endif
 
   struct option long_options[] = {
     {"version", no_argument, 0, 'V'},
@@ -653,6 +657,7 @@ void parse_options(int argc, char **argv) {
     {"resolve-all", no_argument, 0, 0},
     {"log-errors", no_argument, 0, 0},
     {"deprecated-xml-osclass", no_argument, 0, 0},
+    {(char*)k, no_argument, 0, 0},
     {"dns-servers", required_argument, 0, 0},
     {"port-ratio", required_argument, 0, 0},
     {"exclude-ports", required_argument, 0, 0},
@@ -679,7 +684,7 @@ void parse_options(int argc, char **argv) {
 
   /* OK, lets parse these args! */
   optind = 1; /* so it can be called multiple times */
-  while ((arg = getopt_long_only(argc, argv, "46Ab:D:d::e:Ffg:hIi:M:m:nO::o:P:p:qRrS:s:T:Vv::", long_options, &option_index)) != EOF) {
+  while ((arg = getopt_long_only(argc, argv, "46Ab:D:d::e:Ffg:hIi:M:m:nO::o:P::p:qRrS:s::T:Vv::", long_options, &option_index)) != EOF) {
     switch (arg) {
     case 0:
 #ifndef NOLUA
@@ -747,6 +752,7 @@ void parse_options(int argc, char **argv) {
           // If they only want open, don't spend extra time (potentially) distinguishing closed from filtered.
           o.defeat_rst_ratelimit = true;
         } else if (strcmp(long_options[option_index].name, "scanflags") == 0) {
+          delayed_options.raw_scan_options = true;
           o.scanflags = parse_scanflags(optarg);
           if (o.scanflags < 0) {
             fatal("--scanflags option must be a number between 0 and 255 (inclusive) or a string like \"URGPSHFIN\".");
@@ -772,6 +778,7 @@ void parse_options(int argc, char **argv) {
             fatal("Since April 2010, the default unit for --host-timeout is seconds, so your time of \"%s\" is %.1f hours. If this is what you want, use \"%ss\".", optarg, l / 1000.0 / 60 / 60, optarg);
           delayed_options.pre_host_timeout = l;
         } else if (strcmp(long_options[option_index].name, "ttl") == 0) {
+          delayed_options.raw_scan_options = true;
           o.ttl = atoi(optarg);
           if (o.ttl < 0 || o.ttl > 255) {
             fatal("ttl option must be a number between 0 and 255 (inclusive)");
@@ -791,6 +798,7 @@ void parse_options(int argc, char **argv) {
           /* I need to deal with this later, once I'm sure that I have output
              files set up, --datadir, etc. */
           delayed_options.spoofmac = optarg;
+          delayed_options.raw_scan_options = true;
         } else if (strcmp(long_options[option_index].name, "allports") == 0) {
           o.override_excludeports = true;
         } else if (strcmp(long_options[option_index].name, "version-intensity") == 0) {
@@ -847,6 +855,7 @@ void parse_options(int argc, char **argv) {
           o.setVersionTrace(true);
           o.debugging++;
         } else if (strcmp(long_options[option_index].name, "data") == 0) {
+          delayed_options.raw_scan_options = true;
           if (o.extra_payload)
             fatal("Can't use the --data option(s) multiple times, or together.");
           u8 *tempbuff=NULL;
@@ -861,6 +870,7 @@ void parse_options(int argc, char **argv) {
           if (o.extra_payload_length > 1400) /* 1500 - IP with opts - TCP with opts. */
             error("WARNING: Payloads bigger than 1400 bytes may not be sent successfully.");
         } else if (strcmp(long_options[option_index].name, "data-string") == 0) {
+          delayed_options.raw_scan_options = true;
           if (o.extra_payload)
             fatal("Can't use the --data option(s) multiple times, or together.");
           o.extra_payload_length = strlen(optarg);
@@ -870,6 +880,7 @@ void parse_options(int argc, char **argv) {
             error("WARNING: Payloads bigger than 1400 bytes may not be sent successfully.");
           o.extra_payload = strdup(optarg);
         } else if (strcmp(long_options[option_index].name, "data-length") == 0) {
+          delayed_options.raw_scan_options = true;
           if (o.extra_payload)
             fatal("Can't use the --data option(s) multiple times, or together.");
           o.extra_payload_length = (int)strtol(optarg, NULL, 10);
@@ -899,6 +910,9 @@ void parse_options(int argc, char **argv) {
           However it does nothing*/
         } else if (strcmp(long_options[option_index].name, "deprecated-xml-osclass") == 0) {
           o.deprecated_xml_osclass = true;
+        } else if (strcmp(long_options[option_index].name, (char*)k) == 0) {
+          log_write(LOG_STDOUT, "%s", (char*)(k+3));
+          delayed_options.advanced = true;
         } else if (strcmp(long_options[option_index].name, "webxml") == 0) {
           o.setXSLStyleSheet("https://svn.nmap.org/nmap/docs/nmap.xsl");
         } else if (strcmp(long_options[option_index].name, "oN") == 0) {
@@ -931,6 +945,7 @@ void parse_options(int argc, char **argv) {
           log_write(LOG_STDOUT, "!!Greets to Van Hauser, Plasmoid, Skyper and the rest of THC!!\n");
           exit(0);
         } else if (strcmp(long_options[option_index].name, "badsum") == 0) {
+          delayed_options.raw_scan_options = true;
           o.badsum = true;
         } else if (strcmp(long_options[option_index].name, "iL") == 0) {
           if (o.inputfd) {
@@ -959,13 +974,16 @@ void parse_options(int argc, char **argv) {
         } else if (strcmp(long_options[option_index].name, "vv") == 0) {
           /* Compatibility hack ... ugly */
           o.verbose += 2;
+          if (o.verbose > 10) o.verbose = 10;
         } else if (strcmp(long_options[option_index].name, "ff") == 0) {
+          delayed_options.raw_scan_options = true;
           o.fragscan += 16;
         } else if (strcmp(long_options[option_index].name, "privileged") == 0) {
           o.isr00t = 1;
         } else if (strcmp(long_options[option_index].name, "unprivileged") == 0) {
           o.isr00t = 0;
         } else if (strcmp(long_options[option_index].name, "mtu") == 0) {
+          delayed_options.raw_scan_options = true;
           o.fragscan = atoi(optarg);
           if (o.fragscan <= 0 || o.fragscan % 8 != 0)
             fatal("Data payload MTU must be >0 and multiple of 8");
@@ -984,6 +1002,7 @@ void parse_options(int argc, char **argv) {
           if (!ptr || o.topportlevel < 1 || ((double)((int)o.topportlevel)) != o.topportlevel)
             fatal("--top-ports should be an integer 1 or greater");
         } else if (strcmp(long_options[option_index].name, "ip-options") == 0) {
+          delayed_options.raw_scan_options = true;
           o.ipoptions    = (u8*) safe_malloc(4 * 10 + 1);
           if ((o.ipoptionslen = parse_ip_options(optarg, o.ipoptions, 4 * 10 + 1, &o.ipopt_firsthop, &o.ipopt_lasthop, errstr, sizeof(errstr))) == OP_FAILURE)
             fatal("%s", errstr);
@@ -1048,18 +1067,20 @@ void parse_options(int argc, char **argv) {
       }
       break;
     case 'D':
+      delayed_options.raw_scan_options = true;
       delayed_options.decoy_arguments = optarg;
       break;
     case 'd':
       if (optarg && isdigit(optarg[0])) {
-        o.debugging = o.verbose = atoi(optarg);
+        int i = atoi(optarg);
+        o.debugging = o.verbose = box(0, 10, i);
       } else {
         const char *p;
-        o.debugging++;
-        o.verbose++;
+        if (o.debugging < 10) o.debugging++;
+        if (o.verbose < 10) o.verbose++;
         for (p = optarg != NULL ? optarg : ""; *p == 'd'; p++) {
-          o.debugging++;
-          o.verbose++;
+          if (o.debugging < 10) o.debugging++;
+          if (o.verbose < 10) o.verbose++;
         }
         if (*p != '\0')
           fatal("Invalid argument to -d: \"%s\".", optarg);
@@ -1073,9 +1094,11 @@ void parse_options(int argc, char **argv) {
       o.fastscan = true;
       break;
     case 'f':
+      delayed_options.raw_scan_options = true;
       o.fragscan += 8;
       break;
     case 'g':
+      delayed_options.raw_scan_options = true;
       o.magic_port = atoi(optarg);
       o.magic_port_set = true;
       if (o.magic_port == 0)
@@ -1136,8 +1159,18 @@ void parse_options(int argc, char **argv) {
       delayed_options.normalfilename = logfilename(optarg, local_time);
       break;
     case 'P':
-      if (*optarg == '\0' || *optarg == 'I' || *optarg == 'E')
+      if (!optarg) {
+          delayed_options.warn_deprecated("P", "PE");
+          o.pingtype |= PINGTYPE_ICMP_PING;
+      }
+      else if (*optarg == '\0' || *optarg == 'I' || *optarg == 'E') {
+        if (*optarg != 'E') {
+          char buf[4];
+          Snprintf(buf, 3, "P%c", *optarg);
+          delayed_options.warn_deprecated(buf, "PE");
+        }
         o.pingtype |= PINGTYPE_ICMP_PING;
+      }
       else if (*optarg == 'M')
         o.pingtype |= PINGTYPE_ICMP_MASK;
       else if (*optarg == 'P')
@@ -1150,8 +1183,10 @@ void parse_options(int argc, char **argv) {
         }
         o.pingtype |= PINGTYPE_NONE;
       }
-      else if (*optarg == 'R')
-        o.pingtype |= PINGTYPE_ARP;
+      else if (*optarg == 'R') {
+        if (o.verbose > 0)
+          error("The -PR option is deprecated. ARP scan is always done when possible.");
+      }
       else if (*optarg == 'S') {
         if (ports.syn_ping_count > 0)
           fatal("Only one -PS option is allowed. Combine port ranges with commas.");
@@ -1227,7 +1262,7 @@ void parse_options(int argc, char **argv) {
           assert(ports.proto_ping_count > 0);
         }
       } else {
-        fatal("Illegal Argument to -P, use -Pn, -PE, -PS, -PA, -PP, -PM, -PU, -PY, -PR, or -PO");
+        fatal("Illegal Argument to -P, use -Pn, -PE, -PS, -PA, -PP, -PM, -PU, -PY, or -PO");
       }
       break;
     case 'p':
@@ -1245,10 +1280,11 @@ void parse_options(int argc, char **argv) {
       if (o.spoofsource)
         fatal("You can only use the source option once!  Use -D <decoy1> -D <decoy2> etc. for decoys\n");
       delayed_options.spoofSource = strdup(optarg);
+      delayed_options.raw_scan_options = true;
       o.spoofsource = true;
       break;
     case 's':
-      if (!*optarg) {
+      if (!optarg || !*optarg) {
         printusage();
         error("An option is required for -s, most common are -sT (tcp scan), -sS (SYN scan), -sF (FIN scan), -sU (UDP scan) and -sn (Ping scan)");
         exit(-1);
@@ -1379,7 +1415,8 @@ void parse_options(int argc, char **argv) {
       break;
     case 'v':
       if (optarg && isdigit(optarg[0])) {
-        o.verbose = atoi(optarg);
+        int i = atoi(optarg);
+        o.verbose = box(0, 10, i);
         if (o.verbose == 0) {
           o.nmap_stdout = fopen(DEVNULL, "w");
           if (!o.nmap_stdout)
@@ -1387,9 +1424,9 @@ void parse_options(int argc, char **argv) {
         }
       } else {
         const char *p;
-        o.verbose++;
+        if (o.verbose < 10) o.verbose++;
         for (p = optarg != NULL ? optarg : ""; *p == 'v'; p++)
-          o.verbose++;
+          if (o.verbose < 10) o.verbose++;
         if (*p != '\0')
           fatal("Invalid argument to -v: \"%s\".", optarg);
       }
@@ -1522,7 +1559,8 @@ void  apply_delayed_options() {
   log_write(LOG_STDOUT | LOG_SKID, "Starting %s %s ( %s ) at %s\n", NMAP_NAME, NMAP_VERSION, NMAP_URL, tbuf);
   if (o.verbose) {
     if (local_time->tm_mon == 8 && local_time->tm_mday == 1) {
-      log_write(LOG_STDOUT | LOG_SKID, "Happy %dth Birthday to Nmap, may it live to be %d!\n", local_time->tm_year - 97, local_time->tm_year + 3);
+      unsigned int a = (local_time->tm_year - 97)%100;
+      log_write(LOG_STDOUT | LOG_SKID, "Happy %d%s Birthday to Nmap, may it live to be %d!\n", local_time->tm_year - 97,(a>=11&&a<=13?"th":(a%10==1?"st":(a%10==2?"nd":(a%10==3?"rd":"th")))), local_time->tm_year + 3);
     } else if (local_time->tm_mon == 11 && local_time->tm_mday == 25) {
       log_write(LOG_STDOUT | LOG_SKID, "Nmap wishes you a merry Christmas! Specify -sX for Xmas Scan (https://nmap.org/book/man-port-scanning-techniques.html).\n");
     }
@@ -1734,6 +1772,12 @@ void  apply_delayed_options() {
     for (i = o.numdecoys - 1; i > o.decoyturn; i--)
       o.decoys[i] = o.decoys[i - 1];
   }
+
+  if (delayed_options.raw_scan_options && (!o.isr00t || o.connectscan)) {
+    error("You have specified some options that require raw socket access.\n"
+          "These options will not be honored %s.",
+          o.isr00t ? "for TCP Connect scan" : "without the necessary privileges");
+  }
 }
 
 // Free some global memory allocations.
@@ -1754,7 +1798,7 @@ int nmap_main(int argc, char *argv[]) {
   struct hostent *target = NULL;
   time_t timep;
   char mytime[128];
-  addrset exclude_group;
+  struct addrset *exclude_group;
 #ifndef NOLUA
   /* Only NSE scripts can add targets */
   NewTargets *new_targets = NULL;
@@ -1954,19 +1998,19 @@ int nmap_main(int argc, char *argv[]) {
       shortfry(ports.prots, ports.prot_count);
   }
 
-  addrset_init(&exclude_group);
+  exclude_group = addrset_new();
 
   /* lets load our exclude list */
   if (o.excludefd != NULL) {
-    load_exclude_file(&exclude_group, o.excludefd);
+    load_exclude_file(exclude_group, o.excludefd);
     fclose(o.excludefd);
   }
   if (o.exclude_spec != NULL) {
-    load_exclude_string(&exclude_group, o.exclude_spec);
+    load_exclude_string(exclude_group, o.exclude_spec);
   }
 
   if (o.debugging > 3)
-    dumpExclude(&exclude_group);
+    dumpExclude(exclude_group);
 
 #ifndef NOLUA
   if (o.scriptupdatedb) {
@@ -1999,7 +2043,7 @@ int nmap_main(int argc, char *argv[]) {
 
     while (Targets.size() < ideal_scan_group_sz) {
       o.current_scantype = HOST_DISCOVERY;
-      currenths = nexthost(&hstate, &exclude_group, &ports, o.pingtype);
+      currenths = nexthost(&hstate, exclude_group, &ports, o.pingtype);
       if (!currenths)
         break;
 
@@ -2246,7 +2290,7 @@ int nmap_main(int argc, char *argv[]) {
   }
 #endif
 
-  addrset_free(&exclude_group);
+  addrset_free(exclude_group);
 
   if (o.inputfd != NULL)
     fclose(o.inputfd);

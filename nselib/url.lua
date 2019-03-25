@@ -37,6 +37,7 @@ local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
 local idna = require "idna"
+local tableaux = require "tableaux"
 local unicode = require "unicode"
 local unittest = require "unittest"
 local base = _G
@@ -114,9 +115,10 @@ end
 -- @return Escaped representation of string.
 -----------------------------------------------------------------------------
 function escape(s)
-  return string.gsub(s, "([^A-Za-z0-9_.~-])", function(c)
+  local ret = string.gsub(s, "([^A-Za-z0-9_.~-])", function(c)
     return string.format("%%%02x", string.byte(c))
   end)
+  return ret
 end
 
 
@@ -126,9 +128,10 @@ end
 -- @return Decoded string.
 -----------------------------------------------------------------------------
 function unescape(s)
-  return string.gsub(s, "%%(%x%x)", function(hex)
+  local ret = string.gsub(s, "%%(%x%x)", function(hex)
     return string.char(base.tonumber(hex, 16))
   end)
+  return ret
 end
 
 
@@ -408,16 +411,28 @@ function build_query(query)
   return table.concat(qstr, '&')
 end
 
+local get_default_port_ports = {http=80, https=443}
 ---
 -- Provides the default port for a given URI scheme.
 --
 -- @param scheme for determining the port, such as "http" or "https".
 -- @return A port number as an integer, such as 443 for scheme "https",
 --         or nil in case of an undefined scheme
------------------------------------------------------------------------------
 function get_default_port (scheme)
-  local ports = {http=80, https=443}
-  return ports[(scheme or ""):lower()]
+  return get_default_port_ports[(scheme or ""):lower()]
+end
+
+get_default_scheme_schemes = tableaux.invert(get_default_port_ports)
+
+---
+-- Provides the default URI scheme for a given port.
+--
+-- @param port A port number as a number or port table
+-- @return scheme for addressing the port, such as "http" or "https".
+-----------------------------------------------------------------------------
+function get_default_scheme (port)
+  local number = (type(port) == "number") and port or port.number
+  return get_default_scheme_schemes[number]
 end
 
 if not unittest.testing() then

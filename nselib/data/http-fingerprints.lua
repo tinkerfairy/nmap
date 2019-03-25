@@ -5296,7 +5296,7 @@ table.insert(fingerprints, {
         output = "WebSphere Commerce"
       },
     }
-  })
+  });
 
 ------------------------------------------------
 ----     PRINTERS, WEBCAMS, PROJECTORS      ----
@@ -7150,6 +7150,77 @@ table.insert(fingerprints, {
     }
   });
 
+table.insert(fingerprints, {
+    category = 'attacks',
+    probes = {
+      {
+        path = '/uir//etc/passwd',
+        method = 'GET'
+      }
+    },
+    matches = {
+      {
+        match = '200',
+        output = 'Possible D-Link router directory traversal vulnerability (CVE-2018-10822)'
+      },
+      {
+        match = 'root:',
+	output = 'D-Link router directory traversal vulnerability (CVE-2018-10822)'
+      }
+     }
+  });
+
+table.insert(fingerprints, {
+    category = 'attacks',
+    probes = {
+      {
+        path = '/uir//tmp/csman/0',
+        method = 'GET'
+      }
+    },
+    matches = {
+      {
+        match = '200',
+        output = 'Possible D-Link router plaintext password file exposure (CVE-2018-10824)'
+      }
+    }
+  });
+
+table.insert(fingerprints, {
+    category = 'attacks',
+    probes = {
+      {
+        path = '/cgi-bin/export_debug_msg.exp',
+        method = 'GET'
+      },
+      {
+        path = '/cgi-bin/config.exp',
+        method = 'GET'
+      }
+    },
+    matches = {
+      {
+        match = '200 OK',
+        output = 'Cisco RV320/RV325 Unauthenticated Diagnostic Data & Configuration Export (CVE-2019-1653)'
+      }
+    }
+  });
+
+table.insert(fingerprints, {
+    category = 'attacks',
+    probes = {
+      {
+        path = '/',
+        method = 'GET'
+      }
+    },
+    matches = {
+      {
+        match = 'var admin_name=".*";\nvar guest_name=".*";\nvar admin_pwd=".*";',
+        output = 'Cisco RV110W Wireless-N VPN Firewall Password Disclosure (CVE-2014-0683)'
+      }
+    }
+  });
 ------------------------------------------------
 ----        Open Source CMS checks          ----
 ------------------------------------------------

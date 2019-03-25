@@ -666,6 +666,7 @@ match ftp m|^220  FTP version 1\.0 ready at | p/Netgear broadband router or ZyXe
 match ftp m|^220 ([\w._-]+) FTP version 1\.0 ready at | p/Netgear broadband router or ZyXel VoIP adapter ftpd/ v/1.0/ h/$1/
 match ftp m|^220 \(none\) FTP server \(GNU inetutils ([\w._-]+)\) ready\.\r\n| p/GNU Inetutils FTPd/ v/$1/ cpe:/a:gnu:inetutils:$1/
 match ftp m|^220 ([-.\w]+) FTP server \(GNU inetutils (\d[-.\w ]+)\) ready\.\r\n| p/GNU Inetutils FTPd/ v/$2/ h/$1/ cpe:/a:gnu:inetutils:$2/
+match ftp m|^220 FTP server \(GNU inetutils ([\w._-]+)\) ready\.\r\n| p/GNU Inetutils FTPd/ v/$1/ cpe:/a:gnu:inetutils:$1/
 match ftp m|^220 .* \(glftpd (\d[-.0-9a-zA-Z]+)_(\w+)(?:\+TLS)?\) ready\.\r\n| p/glFTPd/ v/$1/ i/$2/ o/Unix/
 match ftp m|^220 .* \(glFTPd (\d[-.0-9a-zA-Z]+)_(\w+) Linux\+TLS\) ready\.?\r\n| p/glFTPd/ v/$1/ i/$2/ o/Linux/ cpe:/o:linux:linux_kernel/a
 match ftp m|^220 .* \(glFTPd (\d[-.0-9a-zA-Z]+) Linux\+TLS\) ready\.\r\n| p/glFTPd/ v/$1/ o/Linux/ cpe:/o:linux:linux_kernel/a
@@ -1925,24 +1926,25 @@ match java-cim m|^JavaCIMAdapter: connection closed - remote access not allowed\
 
 match java-message-service m|^101 imqbroker ([^\n]+)\n| p/Java Message Service/ v/$1/
 
-match java-rmi m=^\x80c\0\0\x00622996\|com\.code42\.messaging\.security\.DHPublicKeyMessageY\xd4\0\0\0.0\x81.0\x81.\x06\t\*\x86H\x86\xf7\r\x01\x03\x010\x81.\x02A\0=s p/Java RMI/ i/CrashPlan online backup/
+match code42-messaging m=^\x80c\0\0\x00622996\|com\.code42\.messaging\.security\.DHPublicKeyMessageY\xd4\0\0\0.0\x81.0\x81.\x06\t\*\x86H\x86\xf7\r\x01\x03\x010\x81.\x02A\0=s p/CrashPlan online backup/
 # CrashPlan 3.2.1, 4.5.2, etc.
-match java-rmi m=^\x80c\0\0\x00A-18782\|com\.code42\.messaging\.security\.SecurityProviderReadyMessage\xb6\xa2\0\0\0\"\x01\0................................$=s p/Java RMI/ i/CrashPlan online backup/
+match code42-messaging m=^\x80c\0\0\x00A-18782\|com\.code42\.messaging\.security\.SecurityProviderReadyMessage\xb6\xa2\0\0\0\"\x01\0................................$=s p/CrashPlan online backup/
 
-# I'm not sure if this is RMI per se or just the Java serialization format. --Ed.
-match java-rmi m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x15\xc8\"\x95ur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0'\xac\xed\0\x05t..http://([\w._-]+):\d+/|s p/Java RMI/ i/JBoss JNP service 6/ h/$1/
-match java-rmi m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x04\xaaZ\x7fur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0\$\xac\xed\0\x05t..http://([\w._-]+):\d+/|s p/Java RMI/ i/HP Network Node Manager 9/ h/$1/
-match java-rmi m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x18\x8b\x85\xf1ur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\x004\xac\xed\0\x05t..http://([\w._-]+):\d+/|s p/Java RMI/ i/JBoss AS 4/ h/$1/
-match java-rmi m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x93\xe0\xaf\)ur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0\x31\xac\xed\0\x05t\0 (http://[\w._-]+:\d+/)q\0~\0\0q\0~\0\0uq\0~\0\x03\0\0\0\xc9\xac\xed\0\x05sr\0 org\.jnp\.server\.NamingServer_Stub\0\0\0\0\0\0\0\x02\x02\0\0xr\0\x1ajava\.rmi\.server\.RemoteStub\xe9\xfe\xdc\xc9\x8b\xe1e\x1a\x02\0\0xr\0\x1cjava\.rmi\.server\.RemoteObject\xd3a\xb4\x91\x0ca3\x1e\x03\0\0xpw\x3d\0\x0bUnicastRef2\0\0.([\w._-]+)\0\0\xc0\x81\x1a\xe1\x88;\xd6\x8b\x10\x13\t\xc3\x15G\0\0\x014\xb1\xbfx2\x80\x01\0x|s p/Java RMI/ i/BlackBerry Admin Service JNDI; URL: $1/ h/$2/
-match java-rmi m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x16\xa1\xfe\x03ur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0J\xac\xed\0\x05t\0 (http://[\w._-]+:\d+/)q\0~\0\0q\0~\0\0q\0~\0\0q\0~\0\0q\0~\0\0q\0~\0\0q\0~\0\0uq\0~\0\x03\0\0\x03\x14\xac\xed\0\x05s}\0\0\0\x02\0\x19org\.jnp\.interfaces\.Naming\0,org\.jboss\.ha\.framework\.interfaces\.HARMIProxyxr\0\x17java\.lang\.reflect\.Proxy\xe1'\xda \xcc\x10C\xcb\x02\0\x01L\0\x01ht\0%Ljava/lang/reflect/InvocationHandler;xpsr\0-org\.jboss\.ha\.framework\.interfaces\.HARMIClient\xee\xf5\xebj\xfb\xb5\xd9\x91\x03\0\x03L\0\x11familyClusterInfot\0\x35Lorg/jboss/ha/framework/interfaces/FamilyClusterInfo;L\0\x03keyt\0\x12Ljava/lang/String;L\0\x11loadBalancePolicyt\0\x35Lorg/jboss/ha/framework/interfaces/LoadBalancePolicy;xpw%\0#RIM_BES_BAS_HA_338625_VCBES1/HAJNDIsr\0\x13java\.util\.ArrayListx\x81\xd2\x1d\x99\xc7a\x9d\x03\0\x01I\0\x04sizexp\0\0\0\x01w\x04\0\0\0\x01sr\0\x32org\.jboss\.ha\.framework\.server\.HARMIServerImpl_Stub\0\0\0\0\0\0\0\x02\x02\0\0xr\0\x1ajava\.rmi\.server\.RemoteStub\xe9\xfe\xdc\xc9\x8b\xe1e\x1a\x02\0\0xr\0\x1cjava\.rmi\.server\.RemoteObject\xd3a\xb4\x91\x0ca3\x1e\x03\0\0xpw\x3d\0\x0bUnicastRef2\0\0.([\w._-]+)\0\0\xc0\x81k\x9b\n;\x12\xdb\$\x89\t\xc3\x15G\0| p/Java RMI/ i/BlackBerry Enterprise Service JNDI; URL: $1/ h/$2/ cpe:/a:blackberry:blackberry_enterprise_service/
-match java-rmi m|^\xac\xed\0\x05sr\0\x35javax\.management\.remote\.message\.HandshakeBeginMessage\x04\x13\xdf,\x84\x8b\xce6\x02\0\x02L\0\x08profilest\0\x12Ljava/lang/String;L\0\x07versionq\0~\0\x01xppt\0\x031\.0$| p/Java RMI/ i/JMXMP Connectors/
-match java-rmi m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xpsN\x96Rur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0\)\xac\xed\0\x05t..http://([\w._-]+):\d+q\0~\0\0q\0~\0\0uq\0~\0\x03\0\0\0\xc2\xac\xed\0\x05sr\0 org\.jnp\.server\.NamingServer_Stub\0\0\0\0\0\0\0\x02\x02\0\0xr\0\x1ajava\.rmi\.server\.RemoteStub\xe9\xfe\xdc\xc9\x8b\xe1e\x1a\x02\0\0xr\0\x1cjava\.rmi\.server\.RemoteObject\xd3a\xb4\x91\x0ca3\x1e\x03\0\0xpw6\0\x0bUnicastRef2\0..[\d.]+\0\0FRS\xf5\x7f\[<\xda\xbd\x92\xcfN\x8c\xcf\0\0\x01Ay\x1e\xc1\xba\x80\x01\0x| p/Java RMI/ i/NE3S Naming Service/ h/$1/
-match java-rmi m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x01\xc3\xed\x9epur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0\xc5\xac\xed\0\x05sr\0 org\.jnp\.server\.NamingServer_Stub\0\0\0\0\0\0\0\x02\x02\0\0xr\0\x1ajava\.rmi\.server\.RemoteStub\xe9\xfe\xdc\xc9\x8b\xe1e\x1a\x02\0\0xr\0\x1cjava\.rmi\.server\.RemoteObject\xd3a\xb4\x91\x0ca3\x1e\x03\0\0xpw9\0\x0bUnicastRef2\0\0\x0e| p/Java RMI/ i/HornetQ JMS/
+# https://docs.oracle.com/javase/6/docs/platform/serialization/spec/protocol.html
+match java-object m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x15\xc8\"\x95ur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0'\xac\xed\0\x05t..http://([\w._-]+):\d+/|s p/JBoss JNP service 6/ h/$1/
+match java-object m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x04\xaaZ\x7fur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0\$\xac\xed\0\x05t..http://([\w._-]+):\d+/|s p/HP Network Node Manager 9/ h/$1/
+match java-object m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x18\x8b\x85\xf1ur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\x004\xac\xed\0\x05t..http://([\w._-]+):\d+/|s p/JBoss AS 4/ h/$1/
+match java-object m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x93\xe0\xaf\)ur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0\x31\xac\xed\0\x05t\0 (http://[\w._-]+:\d+/)q\0~\0\0q\0~\0\0uq\0~\0\x03\0\0\0\xc9\xac\xed\0\x05sr\0 org\.jnp\.server\.NamingServer_Stub\0\0\0\0\0\0\0\x02\x02\0\0xr\0\x1ajava\.rmi\.server\.RemoteStub\xe9\xfe\xdc\xc9\x8b\xe1e\x1a\x02\0\0xr\0\x1cjava\.rmi\.server\.RemoteObject\xd3a\xb4\x91\x0ca3\x1e\x03\0\0xpw\x3d\0\x0bUnicastRef2\0\0.([\w._-]+)\0\0\xc0\x81\x1a\xe1\x88;\xd6\x8b\x10\x13\t\xc3\x15G\0\0\x014\xb1\xbfx2\x80\x01\0x|s p/BlackBerry Admin Service JNDI; URL: $1/ h/$2/
+match java-object m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x16\xa1\xfe\x03ur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0J\xac\xed\0\x05t\0 (http://[\w._-]+:\d+/)q\0~\0\0q\0~\0\0q\0~\0\0q\0~\0\0q\0~\0\0q\0~\0\0q\0~\0\0uq\0~\0\x03\0\0\x03\x14\xac\xed\0\x05s}\0\0\0\x02\0\x19org\.jnp\.interfaces\.Naming\0,org\.jboss\.ha\.framework\.interfaces\.HARMIProxyxr\0\x17java\.lang\.reflect\.Proxy\xe1'\xda \xcc\x10C\xcb\x02\0\x01L\0\x01ht\0%Ljava/lang/reflect/InvocationHandler;xpsr\0-org\.jboss\.ha\.framework\.interfaces\.HARMIClient\xee\xf5\xebj\xfb\xb5\xd9\x91\x03\0\x03L\0\x11familyClusterInfot\0\x35Lorg/jboss/ha/framework/interfaces/FamilyClusterInfo;L\0\x03keyt\0\x12Ljava/lang/String;L\0\x11loadBalancePolicyt\0\x35Lorg/jboss/ha/framework/interfaces/LoadBalancePolicy;xpw%\0#RIM_BES_BAS_HA_338625_VCBES1/HAJNDIsr\0\x13java\.util\.ArrayListx\x81\xd2\x1d\x99\xc7a\x9d\x03\0\x01I\0\x04sizexp\0\0\0\x01w\x04\0\0\0\x01sr\0\x32org\.jboss\.ha\.framework\.server\.HARMIServerImpl_Stub\0\0\0\0\0\0\0\x02\x02\0\0xr\0\x1ajava\.rmi\.server\.RemoteStub\xe9\xfe\xdc\xc9\x8b\xe1e\x1a\x02\0\0xr\0\x1cjava\.rmi\.server\.RemoteObject\xd3a\xb4\x91\x0ca3\x1e\x03\0\0xpw\x3d\0\x0bUnicastRef2\0\0.([\w._-]+)\0\0\xc0\x81k\x9b\n;\x12\xdb\$\x89\t\xc3\x15G\0| p/BlackBerry Enterprise Service JNDI; URL: $1/ h/$2/ cpe:/a:blackberry:blackberry_enterprise_service/
+match java-object m|^\xac\xed\0\x05sr\0\x35javax\.management\.remote\.message\.HandshakeBeginMessage\x04\x13\xdf,\x84\x8b\xce6\x02\0\x02L\0\x08profilest\0\x12Ljava/lang/String;L\0\x07versionq\0~\0\x01xppt\0\x031\.0$| p/JMXMP Connectors/
+match java-object m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xpsN\x96Rur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0\)\xac\xed\0\x05t..http://([\w._-]+):\d+q\0~\0\0q\0~\0\0uq\0~\0\x03\0\0\0\xc2\xac\xed\0\x05sr\0 org\.jnp\.server\.NamingServer_Stub\0\0\0\0\0\0\0\x02\x02\0\0xr\0\x1ajava\.rmi\.server\.RemoteStub\xe9\xfe\xdc\xc9\x8b\xe1e\x1a\x02\0\0xr\0\x1cjava\.rmi\.server\.RemoteObject\xd3a\xb4\x91\x0ca3\x1e\x03\0\0xpw6\0\x0bUnicastRef2\0..[\d.]+\0\0FRS\xf5\x7f\[<\xda\xbd\x92\xcfN\x8c\xcf\0\0\x01Ay\x1e\xc1\xba\x80\x01\0x| p/NE3S Naming Service/ h/$1/
+match java-object m|^\xac\xed\0\x05sr\0\x19java\.rmi\.MarshalledObject\x7c\xbd\x1e\x97\xedc\xfc>\x02\0\x03I\0\x04hash\[\0\x08locBytest\0\x02\[B\[\0\x08objBytesq\0~\0\x01xp\x01\xc3\xed\x9epur\0\x02\[B\xac\xf3\x17\xf8\x06\x08T\xe0\x02\0\0xp\0\0\0\xc5\xac\xed\0\x05sr\0 org\.jnp\.server\.NamingServer_Stub\0\0\0\0\0\0\0\x02\x02\0\0xr\0\x1ajava\.rmi\.server\.RemoteStub\xe9\xfe\xdc\xc9\x8b\xe1e\x1a\x02\0\0xr\0\x1cjava\.rmi\.server\.RemoteObject\xd3a\xb4\x91\x0ca3\x1e\x03\0\0xpw9\0\x0bUnicastRef2\0\0\x0e| p/HornetQ JMS/
 # May be more general: "WebGoat (OWASP): in the WebGoat WEB-INF\web.xml: Axis SOAPMonitorService.
+match java-object m|^\xac\xed\0\x05sr\0\x1elia\.Monitor\.monitor\.monMessage\x8e\xf8\xad\xb0\x14\xe6`!\x02\0\x03L\0\x05identt\0\x12Ljava/lang/Object;L\0\x06resultq\0~\0\x01L\0\x03tagt\0\x12Ljava/lang/String| p/MonALISA monitoring service/
 
 # ACED is a magic number and 5 is a version number.
 # http://docs.oracle.com/javase/6/docs/platform/serialization/spec/protocol.html
-softmatch java-rmi m|^\xac\xed\x00\x05| p/Java RMI/
+softmatch java-object m|^\xac\xed\x00\x05| p/Java Object Serialization/
 
 # http://shrubbery.mynetgear.net/c/display/W/JBoss+Ports
 match jboss-remoting m|^\0\0\0\x3e\0\0\x01\0\x03\x04\0\0\0\x03\x03\x04\0\0\0\x02\x01\x06GSSAPI\x01\nDIGEST-MD5\x01\x08CRAM-MD5\x02\x0e([\w._-]+)$| p/JBoss Remoting/ v/6/ h/$1/
@@ -2170,8 +2172,6 @@ match meterpreter m|^\x16\x03\0\0\x59\x01\0\0\x55\x03\0.........................
 match meterpreter m|^\0\0\0\xd3\xca\xfe\xba\xbe\0\x03\0-\0\n\x07\0\x07\x07\0\x08\x01\0\x05start\x01\0E\(Ljava/io/DataInputStream;Ljava/io/OutputStream;\[Ljava/lang/String;\)V\x01\0\nExceptions\x07\0\t\x01\0\x17javapayload/stage/Stage\x01\0\x10java/lang/Object\x01\0\x13java/lang/Exception| p/Metasploit browser_autopwn/
 
 match millennium-ils m|^\"Thread-15\"  prio=5 \(RUNNABLE\)\r\n------------------------------\r\njava\.lang\.ProcessImpl\.waitFor\(Native Method\)\r\ncom\.iii\.miltoolbarpanel\$ToolbarProcess\$1\.run\(miltoolbarpanel\.java:1168\)\r\n\r\n| p/III Millennium Integrated Library System/
-
-match monalisa m|^\xac\xed\0\x05sr\0\x1elia\.Monitor\.monitor\.monMessage\x8e\xf8\xad\xb0\x14\xe6`!\x02\0\x03L\0\x05identt\0\x12Ljava/lang/Object;L\0\x06resultq\0~\0\x01L\0\x03tagt\0\x12Ljava/lang/String| p/MonALISA monitoring service/
 
 # Monopoly game server
 match monopd m|^<monopd><server version=\"([\d.]+)\"/>.*</monopd>\n| p/monopd/ v/$1/ o/Unix/
@@ -3525,7 +3525,7 @@ match ssh m|^SSH-([\d.]+)-OpenSSH_([\w._-]+) \.\n| p/OpenSSH/ v/$2/ i/protocol $
 match ssh m|^SSH-([\d.]+)-OpenSSH_([\w._-]+) PKIX\r\n| p/OpenSSH/ v/$2/ i/protocol $1; X.509 v3 certificate support/ cpe:/a:openbsd:openssh:$2/
 match ssh m|^SSH-([\d.]+)-OpenSSH_([\w._-]+)-FIPS\(capable\)\r\n| p/OpenSSH/ v/$2/ i/protocol $1; FIPS capable/ cpe:/a:openbsd:openssh:$2/
 match ssh m|^SSH-([\d.]+)-OpenSSH_([\w._-]+)-sshjail\n| p/OpenSSH/ v/$2/ i/protocol $1; sshjail patch/ cpe:/a:openbsd:openssh:$2/
-match ssh m|^SSH-([\d.]+)-OpenSSH_([\w._-]+) Raspbian-([^\r\n]+)\r\n| p/OpenSSH/ v/$2 Raspbian $3/ i/protocol $1/ o/Linux/ cpe:/a:openbsd:openssh:$2/ cpe:/o:linux:linux_kernel/a
+match ssh m|^SSH-([\d.]+)-OpenSSH_([\w._-]+) Raspbian-([^\r\n]+)\r?\n| p/OpenSSH/ v/$2 Raspbian $3/ i/protocol $1/ o/Linux/ cpe:/a:openbsd:openssh:$2/ cpe:/o:linux:linux_kernel/a
 match ssh m|^SSH-([\d.]+)-OpenSSH_([\w._-]+) OVH-rescue\r\n| p/OpenSSH/ v/$2/ i/protocol $1; OVH hosting rescue/ cpe:/a:openbsd:openssh:$2/a
 match ssh m|^SSH-([\d.]+)-OpenSSH_([\w._-]+) Trisquel_GNU/linux_([\d.]+)(?:-\d+)?\r\n| p/OpenSSH/ v/$2/ i/protocol $1; Trisquel $3/ o/Linux/ cpe:/a:openbsd:openssh:$2/a cpe:/o:linux:linux_kernel/a cpe:/o:trisquel_project:trisquel_gnu%2flinux:$3/
 match ssh m|^SSH-([\d.]+)-OpenSSH_([\w._-]+) \+ILOM\.2015-5600\r\n| p/OpenSSH/ v/$2/ i/protocol $1; ILOM patched CVE-2015-5600/ cpe:/a:openbsd:openssh:$2/a cpe:/h:oracle:integrated_lights-out/
@@ -3602,7 +3602,7 @@ match ssh m|^SSH-1\.99-InteropSecShell_([\d.]+)\r?\n| p/InteropSystems SSH/ v/$1
 match ssh m|^SSH-([\d.]+)-WeOnlyDo(?:-wodFTPD)? ([\d.]+)\r?\n| p/WeOnlyDo sshd/ v/$2/ i/protocol $1/ o/Windows/ cpe:/o:microsoft:windows/a
 match ssh m|^SSH-([\d.]+)-WeOnlyDo-([\d.]+)\r?\n| p/WeOnlyDo sshd/ v/$2/ i/protocol $1/ o/Windows/ cpe:/o:microsoft:windows/a
 match ssh m|^SSH-2\.0-PGP\r?\n| p/PGP Universal sshd/ i/protocol 2.0/ cpe:/a:pgp:universal_server/
-match ssh m|^SSH-([\d.]+)-libssh-([-\w.]+)\r?\n| p/libssh/ v/$2/ i/protocol $1/ cpe:/a:libssh:libssh:$2/
+match ssh m|^SSH-([\d.]+)-libssh[_-]([-\w.]+)\r?\n| p/libssh/ v/$2/ i/protocol $1/ cpe:/a:libssh:libssh:$2/
 match ssh m|^SSH-([\d.]+)-HUAWEI-VRP([\d.]+)\r?\n| p/Huawei VRP sshd/ i/protocol $1/ d/router/ o/VRP $2/ cpe:/o:huawei:vrp:$2/
 match ssh m|^SSH-([\d.]+)-HUAWEI-UMG([\d.]+)\r?\n| p/Huawei Unified Media Gateway sshd/ i/model: $2; protocol $1/ cpe:/h:huawei:$2/
 # Huawei 6050 WAP
@@ -3707,6 +3707,9 @@ match ssh m|^SSH-([\d.]+)-ipage FTP Server Ready\r\n| p/iPage Hosting sftpd/ i/p
 match ssh m|^SSH-([\d.]+)-ArrayOS\n| p/Array Networks sshd/ i/protocol $1/ o/ArrayOS/ cpe:/o:arraynetworks:arrayos/
 match ssh m|^SSH-([\d.]+)-SC123/SC143 CHIP-RTOS V([\d.]+)\r\n| p/Dropbear sshd/ i/protocol $1/ o/IPC@CHIP-RTOS $2/ cpe:/o:beck-ipc:chip-rtos:$2/ cpe:/a:matt_johnston:dropbear_ssh_server/
 match ssh m|^SSH-([\d.]+)-Syncplify\.me\r\n| p/Syncplify.me Server sftpd/ i/protocol $1/ cpe:/a:syncplify:syncplify.me_server/
+# Always 0.48 with static key. Dropbear, maybe?
+match ssh m|^SSH-([\d.]+)-SSH_(\d[\d.]+)\r\n| p/ZyXEL embedded sshd/ v/$2/ i/protocol $1/ d/broadband router/
+match ssh m|^SSH-([\d.]+)-TECHNICOLOR_SW_([\d.]+)\n| p/Technicolor SA sshd/ v/$2/ i/protocol $1/ d/broadband router/
 
 # FortiSSH uses random server name - match an appropriate length, then check for 3 dissimilar character classes in a row.
 # Does not catch everything, but ought to be pretty good.
@@ -5069,7 +5072,6 @@ match openvpn m|^\0<\xaa\xc5\r\^\xf7\x1b\xd1\xe1a/\xe8\x17P\x9dOb\xbb\x93\x87\xe
 match openvpn-management m|^>INFO:OpenVPN Management Interface Version ([\d.]+) -- type 'help' for more info\r\n>| p/OpenVPN Management Interface/ v/$1/ cpe:/a:openvpn:openvpn:$1/
 
 match osiris m|^\x80[=+:]\x01\x03\x01\0.\0\0\0\x10\0|s p/osiris host IDS agent/
-match osiris m|^\x16\x03\x01\0.\x01\0\0|s p/osiris host IDS agent/
 
 #<\x03\x01H\|\t\xfa\x80\x1fr\x1aN\.\xa2\xa9\?\x0e~\]\xb7\x9dG\xb3\x93E9p\xb5\x01\xeb\x8f21\xde/\0\0\x14\x009\x008\x005\0\x16\0\x13\0\n\x003\x002\0/\0\x05\x02\x01\0
 ###############^\x16\x03\x01\0.\x01\0\0<\x03\x01I\x01\xe0\x9dn\xfd\n\x8c`\x99\xd9\x9bV}\x92\xe4\xe1\xee\xab\x184\x0f\x08\xb4\xf1\xfc\x10XF\xe9\xae\xfb\0\0\x14\x009\x008\x005\0\x16\0\x13\0\n\x003\x002\0/\0\x05\x02\x01\0
@@ -5088,7 +5090,7 @@ match ttscp m|^TTSCP spoken here\r\nprotocol: 0\r\nextensions:\r\nserver: Epos\r
 
 match icecream m|^[\x14-\x1f]\0\0\0$| p/icecreamd/
 
-#commenting out - not APC, likely java-rmi - TomS - 2010.09.26
+#commenting out - not APC, likely java-object - TomS - 2010.09.26
 #match apc-agent m|^\xac\xed\0\x05$| p/APC PowerChute agent/ d/power-device/
 
 match afs3-fileserver m|^load1:[\d.]+###load2:[\d.]+###load3:[\d.]+###MemTotal:(\d+) kB###MemFree:(\d+) kB| p/AFS fileserver/ i|$2/$1 kB free|
@@ -5360,6 +5362,7 @@ match finger m|^This is ([-\w_.]+) finger server\.\r\n\r\nPlease use username@do
 match finger m|^\r\nIntegrated port\r\nPrinter Type: Lexmark ([^\r\n]+)\r\n| p/Lexmark $1 printer fingerd/ d/printer/ cpe:/h:lexmark:$1/a
 match finger m|^finger: /var/adm/lastlog open error\nNo one logged on\r\n| p/Solaris 10 fingerd/ i/Nobody logged in/ o/Solaris/ cpe:/o:sun:sunos:5.10/
 match finger m|^finger: /var/adm/lastlog open error\nLogin       Name| p/Solaris 10 fingerd/ i/Somebody logged in/ o/Solaris/ cpe:/o:sun:sunos:5.10/
+match finger m|^finger: /usr/adm/lastlog open error\nLogin +Name +TTY Idle +When +Office\r\n| p|OSF/1 fingerd| o|OSF/1| cpe:/o:dec:osf_1/
 match finger m|^\r\nUSB port \d+\r\nPrinter Type:  Photo AIO Printer (\w+)\r\nPrint Job Status: ([^\r\n]+)\r\n| p/Dell Photo AIO $1 printer fingerd/ i/Status $2/ d/printer/ cpe:/h:dell:photo_aio_$1/a
 match finger m|^\nDebian GNU/Linux      Copyright \(c\) 1993-1999 Software in the Public Interest\n\n                 Your site has been rejected for some reason\.\n\n         This may be caused by a missing RFC 1413 identd on your site\.\n\n| p/Debian Cfingerd/ o/Linux/ cpe:/a:debian:cfingerd/ cpe:/o:debian:debian_linux/ cpe:/o:linux:linux_kernel/
 match finger m|^Debian GNU/Linux      Copyright \(C\) 1993-1999 Software in the Public Interest\n.*You haven't specified a user\.\n\n               A general listing is not provided to the public\.|s p/Debian Cfingerd/ o/Linux/ cpe:/a:debian:cfingerd/ cpe:/o:debian:debian_linux/ cpe:/o:linux:linux_kernel/a
@@ -5718,6 +5721,7 @@ match ident m|^1 , 1 : USERID : OTHER : chuck-the-bsd-deamon\r\n$| p/widentd/
 match ident m|^,  : USERID : UNIX : [^\r\n]+\r\n$| p/FTPRush FTP client identd/ o/Windows/ cpe:/a:ftprush:ftprush/ cpe:/o:microsoft:windows/a
 match ident m|^0 , 0 : ERROR : FORMAT-ERROR\r\n$| p/GTA GB-Ware firewall identd/ d/firewall/
 match ident m|^,  : USERID : UNIX : ([-\w_]+)\r\n,  : USERID : UNIX : (?:[-\w_]+)\r\n$| p/Snak IRC client identd/ i/username: $1/
+match ident m|^ : ERROR : INVALID-PORT\r\n| p/Quassel IRC/ cpe:/a:quassel:quassel/
 
 match ident m|^rc \(tcp113\): null list in concatenation\n| p/Plan 9 identd/ o/Plan 9/ cpe:/o:belllabs:plan_9/a
 
@@ -6283,7 +6287,8 @@ match am-pdp m|^setreply=450 4\.5\.0 Failure:%20Missing%20'request'%20field%20at
 match am-pdp m|^setreply=450 4\.5\.0 Failure:%20Missing%20'request'%20field%20at%20\(eval%20\d+\)%20line%20(?:185),%20<GEN\d+>%20line%20\d\.\r\n| p/amavisd-new AM.PDP/ v/2.7.0 - 2.7.2/ cpe:/a:ijs:amavisd_new:2.7/
 match am-pdp m|^setreply=450 4\.5\.0 Failure:%20Missing%20'request'%20field%20at%20\(eval%20\d+\)%20line%20(?:188),%20<GEN\d+>%20line%20\d\.\r\n| p/amavisd-new AM.PDP/ v/2.8.0/ cpe:/a:ijs:amavisd_new:2.8.0/
 match am-pdp m|^setreply=450 4\.5\.0 Failure:%20Missing%20'request'%20field%20at%20\(eval%20\d+\)%20line%20(?:193),%20<GEN\d+>%20line%20\d\.\r\n| p/amavisd-new AM.PDP/ v/2.8.1/ cpe:/a:ijs:amavisd_new:2.8.1/
-match am-pdp m|^setreply=450 4\.5\.0 Failure:%20Missing%20'request'%20field%20at%20\(eval%20\d+\)%20line%20(?:196),%20<GEN\d+>%20line%20\d\.\r\n| p/amavisd-new AM.PDP/ v/2.9.0 - 2.9.1/ cpe:/a:ijs:amavisd_new:2.9/
+match am-pdp m|^setreply=450 4\.5\.0 Failure:%20Missing%20'request'%20field%20at%20\(eval%20\d+\)%20line%20(?:196),%20<GEN\d+>%20line%20\d\.\r\n| p/amavisd-new AM.PDP/ v/2.9.0 - 2.10.1/ cpe:/a:ijs:amavisd_new:2/
+match am-pdp m|^setreply=450 4\.5\.0 Failure:%20Missing%20'request'%20field%20at%20\(eval%20\d+\)%20line%20(?:197),%20<GEN\d+>%20line%20\d\.\r\n| p/amavisd-new AM.PDP/ v/2.11.0 - 2.11.1/ cpe:/a:ijs:amavisd_new:2.11/
 
 match amqp m|^AMQP\x00\x00\x09\x01$| p/Advanced Message Queue Protocol/
 match amqp m|^AMQP\x01\x01\x00\x0a$| p/Advanced Message Queue Protocol/
@@ -9278,7 +9283,8 @@ match http m|^HTTP/1\.1 401 Unauthorized\r\nWww-Authenticate: Basic REALM=\"elme
 match http m|^HTTP/1\.1 401 Authorization Required\nDate: .* ([-+]\d+)\nServer: WebPidginZ \n([\w._-]+)\nWWW-Authenticate: Digest realm=\"WebPidginZLoginDigest\", nonce=\"[0-9a-f]+\", opaque=\"0000000000000000\", stale=false, algorithm=MD5, qop=\"auth\"\nConnection: close\nContent-type: text/html\n\n\n\n$| p/WebPidgin-Z instant messaging interface/ v/$2/ i/time zone: $1/
 
 match http m|^HTTP/1\.0 \d\d\d [^\r\n]+\r\n[Cc]ontent-[Tt]ype: application/json; charset=UTF-8\r\n[Cc]ontent-[Ll]ength: \d+\r\n\r\n{.*?"name" : "([^"]+)",\n  "cluster_name" : "([^"]+)",(?:\n  "cluster_uuid" : "[^"]*",)?\n  "version" : {\n    "number" : "([\w._-]+)",.*"lucene_version" : "([^"]+)"\n  },\n  "tagline" : "You Know, for Search"\n}\n|s p/Elasticsearch REST API/ v/$3/ i/name: $1; cluster: $2; Lucene $4/ cpe:/a:apache:lucene:$4/ cpe:/a:elasticsearch:elasticsearch:$3/
-match http m|^HTTP/1\.0 \d\d\d [\w ]+\r\n[Cc]ontent-[Tt]ype: application/json; charset=UTF-8\r\n[Cc]ontent-[Ll]ength: \d+\r\n\r\n{.*"name" : "([^"]+)",(?:\r?\n  "cluster_uuid" : "[^"]*",)?\r?\n  "version" : {\r?\n    "number" : "([^"]+)",.*"lucene_version" : "([^"]+)"\r?\n  },\r?\n  "tagline" : "You Know, for Search"\r?\n}|s p/Elasticsearch REST API/ v/$2/ i/name: $1; Lucene $3/ cpe:/a:apache:lucene:$3/ cpe:/a:elasticsearch:elasticsearch:$2/
+match http m|^HTTP/1\.0 \d\d\d [^\r\n]+\r\n[Cc]ontent-[Tt]ype: application/json; charset=UTF-8\r\n[Cc]ontent-[Ll]ength: \d+\r\n\r\n{.*?"name" : "([^"]+)",\n  "cluster_name" : "([^"]+)",(?:\n  "cluster_uuid" : "[^"]*",)?\n  "version" : {\n    "number" : "([\w._-]+)",.*"lucene_version" : "([^"]+)"|s p/Elasticsearch REST API/ v/$3/ i/name: $1; cluster: $2; Lucene $4/ cpe:/a:apache:lucene:$4/ cpe:/a:elasticsearch:elasticsearch:$3/
+match http m|^HTTP/1\.0 \d\d\d [\w ]+\r\n[Cc]ontent-[Tt]ype: application/json; charset=UTF-8\r\n[Cc]ontent-[Ll]ength: \d+\r\n\r\n{.*"name" : "([^"]+)",(?:\r?\n  "cluster_uuid" : "[^"]*",)?\r?\n  "version" : {\r?\n    "number" : "([^"]+)",.*"lucene_version" : "([^"]+)"}|s p/Elasticsearch REST API/ v/$2/ i/name: $1; Lucene $3/ cpe:/a:apache:lucene:$3/ cpe:/a:elasticsearch:elasticsearch:$2/
 match http m|^HTTP/1\.0 401 Unauthorized\r\nWWW-Authenticate: Basic realm="([^"]+)"(?:[^\r\n]*\r\n)*?\r\n\{"error":\{"root_cause":\[\{"type":"security_exception","reason":"missing authentication token for REST request \[/|s p/Elasticsearch REST API/ i/Shield plugin; realm: $1/ cpe:/a:elasticsearch:elasticsearch/
 
 match http m|^HTTP/1\.0 401 Unauthorized\r\nWWW-Authenticate: Basic realm=\"NETWORK\"\r\nContent-Type: text/html\r\nServer: Lancam Server\r\n\r\n| p/American Dynamics EDVR security recorder/ d/security-misc/
@@ -11178,6 +11184,8 @@ match optommp m|^GET / P\0\0\0\0\0| p/OptoMMP/
 match oracle-mts m|^HTTP/1\.0 200 OK\r\nContent-length: 7\r\n\r\nunknown$| p/Oracle MTS Recovery Service/
 # Windows 2003
 match oracle-mts m|^HTTP/1\.0 400 Bad Request\r\nContent-length: 15\r\nContent-type: text/html\r\n\r\n400 Bad Request$| p/Oracle MTS Recovery Service/
+
+match oracle-nm m|^-ERR Invalid command name 'GET'\r\n-ERR Invalid command name ''\r\n| p/Oracle WebLogic Server Node Manager/ cpe:/a:oracle:weblogic_server/
 
 match oracle-vs m|^\(err \(type xen\.xend\.XendError\.XendError\) \(value 'Invalid operation: GET'\)\)\n$| p/Oracle Virtual Service Agent/ i/Xen/
 match oracle-vs m|^\(err \(type \"<class 'xen\.xend\.XendError\.XendError'>\"\) \(value 'Invalid operation: GET'\)\)\n$| p/Oracle Virtual Service Agent/ i/Xen/
@@ -13261,6 +13269,9 @@ rarity 1
 ports 261,271,322,324,443,444,448,465,548,563,585,636,684,853,989,990,992-995,1241,1311,1443,2000,2221,2252,2376,2443,3443,4433,4443,4444,4911,5061,5443,5550,5868,5986,6251,6443,6679,6697,7000,7210,7272,7443,8009,8181,8194,8443,8531,8883,9001,9443,10443,14443,15002,44443,60443
 fallback GetRequest
 
+# Unknown service on Vingtor-Stentofon IP intercom echoes only up to the first \n, so softmatching until we know more.
+softmatch echo m|^\x16\x03\0\0S\x01\0\0O\x03\0\?G\xd7\xf7\xba,\xee\xea\xb2`~\xf3\0\xfd\x82\{\xb9\xd5\x96\xc8w\x9b\xe6\xc4\xdb<=\xdbo\xef\x10n\0\0\(\0\x16\0\x13\0\n|
+
 # OpenSSL/0.9.7aa, 0.9.8e
 match ssl m|^\x16\x03\0\0J\x02\0\0F\x03\0| p/OpenSSL/ i/SSLv3/ cpe:/a:openssl:openssl/
 
@@ -13393,6 +13404,7 @@ match http m|^HTTP/1\.0 400 Bad Request\nContent-type: text/html\r\nDate: .*\r\n
 match http m|^HTTP/1\.1 400 Bad Request\r\nContent-Length: 30\r\nContent-Type: text/plain\r\n\r\nHTTP requires CRLF terminators| p/CherryPy wsgiserver/ cpe:/a:cherrypy:cherrypy/
 match http m|^<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2\.0//EN">\n<html><head>\n<title>501 Method Not Implemented</title>\n</head><body>\n<h1>Method Not Implemented</h1>\n<p>\x16\x03 to /[^ ]* not supported\.<br />\n</p>\n<hr>\n<address>IBM_HTTP_Server at ([\w.-]+) Port \d+</address>\n</body></html>\n| p/IBM HTTP Server/ h/$1/ cpe:/a:ibm:http_server/
 match http m|^HTTP/1\.1 400 Bad Request\r\nDate: .*<center>nginx</center>\r\n</body>\r\n</html>\r\n$|s p/nginx/ i/reverse proxy/ cpe:/a:igor_sysoev:nginx/
+match http m|^<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2\.0//EN">\n<html><head>\n<title>501 Method Not Implemented</title>\n</head><body>\n<h1>Method Not Implemented</h1>\n<p>\x16\x03 to /[^ ]* not supported\.<br />\n</p>\n<hr>\n<address>Apache Server at ([\w.-]+) Port \d+</address>\n</body></html>\n| p/Apache httpd/ h/$1/ cpe:/a:apache:http_server/a
 
 match http-proxy m|^ 400 badrequest\r\nVia: 1\.0 ([\w.-]+) \(McAfee Web Gateway ([\w._-]+)\)\r\nConnection: Close\r\n| p/McAfee Web Gateway/ v/$2/ i/Via $1/ cpe:/a:mcafee:web_gateway:$2/
 match http-proxy m|^HTTP/1\.1 400\r\nConnection: close\r\n\r\nBad request syntax \('\\x16\\x03\\x00\\x00S\\x01\\x00\\x00O\\x03\\x00\?G\\xd7\\xf7\\xba,\\xee\\xea\\xb2`~\\xf3\\x00\\xfd\\x82\{\\xb9\\xd5\\x96\\xc8w\\x9b\\xe6\\xc4\\xdb<=\\xdbo\\xef\\x10n\\x00\\x00\(\\x00\\x16\\x00\\x13\\x00'\)| p/XX-Net web proxy tool/
@@ -13454,6 +13466,20 @@ match vmware-print m|^\r\0\0+$| p/VMware virtual printing service/
 match xamarin m|^ERROR: Another instance is running\n| p/Xamarin MonoTouch/
 
 ##############################NEXT PROBE##############################
+# This is an RDP connection request with the MSTS cookie set. Some RDP
+# listeners (with NLA?) only respond to this one.
+# This must be sent before TLSSessionReq because Windows RDP will handshake TLS
+# immediately and we don't have a way of identifying RDP at that point.
+Probe TCP TerminalServerCookie q|\x03\0\0*%\xe0\0\0\0\0\0Cookie: mstshash=nmap\r\n\x01\0\x08\0\x03\0\0\0|
+rarity 7
+ports 3388,3389
+fallback TerminalServer
+
+# Windows 10
+match ms-wbt-server m|^\x03\0\0\x13\x0e\xd0\0\0\x124\0\x02\x1f\x08\0\x02\0\0\0| p/Microsoft Terminal Services/ o/Windows/ cpe:/o:microsoft:windows/a
+match ms-wbt-server m|^\x03\0\0\x0b\x06\xd0\0\0\x124\0$| p/Microsoft Terminal Services/ o/Windows XP/ cpe:/o:microsoft:windows_xp/a
+
+##############################NEXT PROBE##############################
 # TLSv1.2 ClientHello probe. TLS implementations may choose to ignore (close
 # silently) incompatible ClientHello messages like the one in SSLSessionReq.
 # This one should be widely compatible, and if we avoid adding non-ssl service
@@ -13464,11 +13490,6 @@ rarity 1
 # Remove 3388 and 3389 if the ssl/ms-wbt-server match below doesn't catch stuff well enough.
 ports 443,444,465,636,989,990,992,993,994,995,1241,1311,2252,3388,3389,4433,4444,5061,6679,6697,8443,8883,9001
 fallback GetRequest
-
-# TIME \x52-\x7f is 2013 - 2038
-# Combination of extension data and null bytes in the session ID should be pretty unique.
-# This is a softmatch because we want to try sending TerminalServerCookie instead.
-softmatch ssl m|^\x16\x03[\x01-\x03]..\x02\0\0M\x03[\x01-\x03][\x52-\x7f].{31} ..\0\0.{28}[\0-\xd0].\0\0\x05\xff\x01\0\x01\0\x0b|s p/Microsoft SChannel TLS/ o/Windows/ cpe:/o:microsoft:windows/a
 
 # SSLv3 - TLSv1.2 ServerHello
 match ssl m|^\x16\x03[\0-\x03]..\x02\0\0.\x03[\0-\x03]|s
@@ -13698,6 +13719,10 @@ match ouman-trend m|^\0\0\0\x05\xffSMBr$| p/Ouman Trend environmental sensor/
 
 # The line numbers need to be updated in both the non-Windows and Windows sections
 
+# Amazon Redshift, based on PostgreSQL 8.0.2
+# line numbers are distinctly different, as well as the source code path
+match postgresql m|^E\0\0\0.SFATAL\0C0A000\0Munsupported frontend protocol 65363\.19778: server supports 1\.0 to 3\.0\0F/home/ec2-user/padb/src/pg/src/backend/postmaster/postmaster\.c\0L2463\0RProcessStartupPacket\0\0$|s p/Amazon Redshift/ v/1.0.1691/ cpe:/a:amazon:redshift:1.0.1691/
+
 # PostgreSQL - Non-Windows platforms
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1287\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/7.4.0 - 7.4.1/ cpe:/a:postgresql:postgresql:7.4/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1293\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/7.4.2 - 7.4.30/ cpe:/a:postgresql:postgresql:7.4/
@@ -13746,7 +13771,8 @@ match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1739\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.15 - 9.2.16/ cpe:/a:postgresql:postgresql:9.2/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1742\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.17/ cpe:/a:postgresql:postgresql:9.2.17/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1746\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.18 - 9.2.19/ cpe:/a:postgresql:postgresql:9.2/
-match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1747\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.20/ cpe:/a:postgresql:postgresql:9.2.20/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1747\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.20 - 9.2.21/ cpe:/a:postgresql:postgresql:9.2/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1755\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.22 - 9.2.24/ cpe:/a:postgresql:postgresql:9.2/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1837\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.0 - 9.3.2/ cpe:/a:postgresql:postgresql:9.3/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1834\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.3 - 9.3.5/ cpe:/a:postgresql:postgresql:9.3/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1872\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.6 - 9.3.9/ cpe:/a:postgresql:postgresql:9.3/
@@ -13757,21 +13783,30 @@ match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1881\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.1 - 9.4.4/ cpe:/a:postgresql:postgresql:9.4/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1955\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.5/ cpe:/a:postgresql:postgresql:9.4.5/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1986\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.14 - 9.3.15 or 9.4.6 - 9.4.8/ cpe:/a:postgresql:postgresql:9/
-match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1987\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.16/ cpe:/a:postgresql:postgresql:9.3.16/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1987\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.16 - 9.3.17/ cpe:/a:postgresql:postgresql:9.3/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1994\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.21 - 9.3.24/ cpe:/a:postgresql:postgresql:9.3/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1990\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.9/ cpe:/a:postgresql:postgresql:9.4.9/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2000\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.10/ cpe:/a:postgresql:postgresql:9.4.10/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2001\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.11/ cpe:/a:postgresql:postgresql:9.4.11/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2002\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.12/ cpe:/a:postgresql:postgresql:9.4.12/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2010\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.13 - 9.4.15/ cpe:/a:postgresql:postgresql:9.4/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2009\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.16 - 9.4.19/ cpe:/a:postgresql:postgresql:9.4/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1991\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.0 - 9.5.3/ cpe:/a:postgresql:postgresql:9.5/
-match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1995\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.4/ cpe:/a:postgresql:postgresql:9.5.4/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L1995\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.18 - 9.3.20 or 9.5.4/ cpe:/a:postgresql:postgresql:9/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2005\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.5/ cpe:/a:postgresql:postgresql:9.5.5/
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2006\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.6/ cpe:/a:postgresql:postgresql:9.5.6/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2007\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.7/ cpe:/a:postgresql:postgresql:9.5.7/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2015\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.8 - 9.5.10/ cpe:/a:postgresql:postgresql:9.5/
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2014\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.11 - 9.5.14/ cpe:/a:postgresql:postgresql:9.5/
 # 9.6.0 introduced a nonlocalized error message
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2008\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.0 - 9.6.1/ cpe:/a:postgresql:postgresql:9.6/
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2009\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.2/ cpe:/a:postgresql:postgresql:9.6.2/
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2023\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.3/ cpe:/a:postgresql:postgresql:9.6.3/
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2031\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.4 - 9.6.6/ cpe:/a:postgresql:postgresql:9.6/
+match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2030\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.7 - 9.6.10/ cpe:/a:postgresql:postgresql:9.6/
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2065\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/10.0 - 10.1/ cpe:/a:postgresql:postgresql:10/
+match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2064\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/10.2 - 10.5/ cpe:/a:postgresql:postgresql:10/
+match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0Fpostmaster\.c\0L2015\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/11.0/ cpe:/a:postgresql:postgresql:11.0/
 
 # PostgreSQL - Windows platforms
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1287\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/7.4.0 - 7.4.1/ o/Windows/ cpe:/a:postgresql:postgresql:7.4/ cpe:/o:microsoft:windows/a
@@ -13821,7 +13856,8 @@ match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backe
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1739\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.15 - 9.2.16/ o/Windows/ cpe:/a:postgresql:postgresql:9.2/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1742\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.17/ o/Windows/ cpe:/a:postgresql:postgresql:9.2.17/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1746\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.18 - 9.2.19/ o/Windows/ cpe:/a:postgresql:postgresql:9.2/ cpe:/o:microsoft:windows/a
-match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1747\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.20/ o/Windows/ cpe:/a:postgresql:postgresql:9.2.20/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1747\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.20 - 9.2.21/ o/Windows/ cpe:/a:postgresql:postgresql:9.2/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1755\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.2.22 - 9.2.24/ o/Windows/ cpe:/a:postgresql:postgresql:9.2/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1837\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.0 - 9.3.2/ o/Windows/ cpe:/a:postgresql:postgresql:9.3/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1834\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.3 - 9.3.5/ o/Windows/ cpe:/a:postgresql:postgresql:9.3/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1872\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.6 - 9.3.9/ o/Windows/ cpe:/a:postgresql:postgresql:9.3/ cpe:/o:microsoft:windows/a
@@ -13830,21 +13866,30 @@ match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backe
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1881\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.1 - 9.4.4/ o/Windows/ cpe:/a:postgresql:postgresql:9.4/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1955\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.5/ o/Windows/ cpe:/a:postgresql:postgresql:9.4.5/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1986\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.14 - 9.3.15 or 9.4.6 - 9.4.8/ o/Windows/ cpe:/a:postgresql:postgresql:9/ cpe:/o:microsoft:windows/a
-match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1987\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.16/ o/Windows/ cpe:/a:postgresql:postgresql:9.3.16/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1987\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.16 - 9.3.17/ o/Windows/ cpe:/a:postgresql:postgresql:9.3/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1994\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.21 - 9.3.24/ o/Windows/ cpe:/a:postgresql:postgresql:9.3/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1990\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.9/ o/Windows/ cpe:/a:postgresql:postgresql:9.4.9/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2000\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.10/ o/Windows/ cpe:/a:postgresql:postgresql:9.4.10/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2001\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.11/ o/Windows/ cpe:/a:postgresql:postgresql:9.4.11/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2002\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.12/ o/Windows/ cpe:/a:postgresql:postgresql:9.4.12/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2010\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.13 - 9.4.15/ o/Windows/ cpe:/a:postgresql:postgresql:9.4/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2009\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.4.16 - 9.4.19/ o/Windows/ cpe:/a:postgresql:postgresql:9.4/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1991\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.0 - 9.5.3/ o/Windows/ cpe:/a:postgresql:postgresql:9.5/ cpe:/o:microsoft:windows/a
-match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1995\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.4/ o/Windows/ cpe:/a:postgresql:postgresql:9.5.4/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L1995\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.3.18 - 9.3.20 or 9.5.4/ o/Windows/ cpe:/a:postgresql:postgresql:9/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2005\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.5/ o/Windows/ cpe:/a:postgresql:postgresql:9.5.5/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2006\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.6/ o/Windows/ cpe:/a:postgresql:postgresql:9.5.6/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2007\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.7/ o/Windows/ cpe:/a:postgresql:postgresql:9.5.7/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2015\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.8 - 9.5.10/ o/Windows/ cpe:/a:postgresql:postgresql:9.5/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2014\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.5.11 - 9.5.14/ o/Windows/ cpe:/a:postgresql:postgresql:9.5/ cpe:/o:microsoft:windows/a
 # 9.6.0 introduced a nonlocalized error message
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2008\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.0 - 9.6.1/ o/Windows/ cpe:/a:postgresql:postgresql:9.6/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2009\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.2/ o/Windows/ cpe:/a:postgresql:postgresql:9.6.2/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2023\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.3/ o/Windows/ cpe:/a:postgresql:postgresql:9.6.3/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2031\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.4 - 9.6.6/ o/Windows/ cpe:/a:postgresql:postgresql:9.6/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2030\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/9.6.7 - 9.6.10/ o/Windows/ cpe:/a:postgresql:postgresql:9.6/ cpe:/o:microsoft:windows/a
 match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2065\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/10.0 - 10.1/ o/Windows/ cpe:/a:postgresql:postgresql:10/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2064\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/10.2 - 10.5/ o/Windows/ cpe:/a:postgresql:postgresql:10/ cpe:/o:microsoft:windows/a
+match postgresql m|^E\0\0\0.S[^\0]+\0VFATAL\0C0A000\0M.*?65363\.19778.*\0F\.\\src\\backend\\postmaster\\postmaster\.c\0L2015\0RProcessStartupPacket\0\0$|s p/PostgreSQL DB/ v/11.0/ o/Windows/ cpe:/a:postgresql:postgresql:11.0/ cpe:/o:microsoft:windows/a
 
 # PostgreSQL - Language specific
 match postgresql m|^E\0\0\0.S[^\0]+\0C0A000\0Mnicht unterst\xc3\xbctztes Frontend-Protokoll 65363\.19778: Server unterst\xc3\xbctzt 1\.0 bis 3\.0\0Fpostmaster\.c\0L\d+\0|s p/PostgreSQL DB/ i/German; Unicode support/ cpe:/a:postgresql:postgresql::::de/
@@ -14539,25 +14584,9 @@ match landesk-rc m|^TNMP.\0\0\0TNME.\0\0\0USER.\x07\x04\0\x08\0.{9}\0P\0\x03\0U\
 match spice m|^REDQ\x02\0\0\0\x02\0\0\0[^\0]| i/SPICE 2.2/
 
 ##############################NEXT PROBE##############################
-# This is an RDP connection request with the MSTS cookie set. Some RDP
-# listeners (with NLA?) only respond to this one.
-Probe TCP TerminalServerCookie q|\x03\0\0*%\xe0\0\0\0\0\0Cookie: mstshash=nmap\r\n\x01\0\x08\0\x03\0\0\0|
-rarity 8
-ports 3388,3389
-
-# Just to draw the softmatch here from TLSSessionReq
-match ssl m|^(?!x)x| p/BUGBUG: This should never match/
-
-# Windows 10
-match ms-wbt-server m|\x03\0\0\x13\x0e\xd0\0\0\x124\0\x02\x1f\x08\0\x02\0\0\0| p/Microsoft Terminal Services/ o/Windows/ cpe:/o:microsoft:windows/a
-
-##############################NEXT PROBE##############################
 Probe TCP TerminalServer q|\x03\0\0\x0b\x06\xe0\0\0\0\0\0|
 rarity 6
 ports 515,1028,1068,1503,1720,1935,2040,3388,3389
-
-# Just to draw the softmatch here from TLSSessionReq
-match ssl m|^(?!x)x| p/BUGBUG: This should never match/
 
 match activefax m|^ActiveFax Server: Es befinden sich insgesamt| p/ActFax Communication ActiveFax/ i/German/
 
@@ -14611,8 +14640,8 @@ match trillian m|^.\0\x01.....\0([^\0]+)\0|s p/Trillian MSN Module/ i/Name $1/ o
 
 match trustwave m|^control\n   ping\n   endping\nendcontrol\n| p/Trustwave SIEM OE/ cpe:/a:trustwave:siem_oe/
 
-# Netware Create Connection Service request
 ##############################NEXT PROBE##############################
+# Netware Create Connection Service request
 Probe TCP NCP q|\x44\x6d\x64\x54\0\0\0\x17\0\0\0\x01\0\0\0\0\x11\x11\0\xff\x01\xff\x13|
 rarity 6
 ports 524,1200,1217,2000,3000-3006,3031,6802
@@ -14695,12 +14724,17 @@ match distccd m|^DONE00000001.*CRITICAL! distcc seems to have invoked itself rec
 match distccd m|^[\w._-]+DONE[\w._-]+ .*ERROR: attempt to use unknown compiler aborted: ([\w._-]+)\n|s p/distccd/ i/broken: compiler $1 doesn't exist/
 
 ##############################NEXT PROBE##############################
+# Java Remote Method Invocation, version 2, stream protocol
+# https://docs.oracle.com/javase/9/docs/specs/rmi/protocol.html
 Probe TCP JavaRMI q|\x4a\x52\x4d\x49\0\x02\x4b|
 rarity 7
-ports 706,999,1030,1035,1090,1098,1099,1100-1103,1129,1199,1234,1440,1981,2199,2809,3273,3333,3900,5520,5521,5580,5999,6060,6789,6996,7700,7800,7801,7878,7890,8050,8051,8085,8091,8205,8303,8642,8686,8701,8888-8890,8901-8903,8999,9001,9003-9005,9050,9090,9099,9300,9500,9711,9809,9810-9815,9875,9910,9991,9999,10001,10098,10099,10162,11001,11099,11333,12000,13013,14000,15000,15001,15200,16000,17200,18980,20000,23791,26256,31099,32913,33000,37718,45230,47001,47002,50050,50500-50504
+ports 706,999,1030,1035,1090,1098,1099,1100-1103,1129,1199,1234,1440,1981,2199,2809,3273,3333,3900,5520,5521,5580,5999,6060,6789,6996,7700,7800,7801,7878,7890,8050,8051,8085,8091,8205,8303,8642,8686,8701,8888-8890,8901-8903,8999,9001,9003-9005,9050,9090,9099,9300,9500,9711,9809,9810-9815,9875,9910,9991,9999,10001,10098,10099,10162,10990,11001,11099,11333,12000,13013,14000,15000,15001,15200,16000,17200,18980,20000,23791,26256,31099,32913,33000,37718,45230,47001,47002,50050,50500-50504
 
-match rmiregistry m|^\x4e..[0-9.]+\0\0..$|s p/Java RMI/
-match rmiregistry m|^\x4e..([\w._-]+)\0\0..$|s p/GNU Classpath grmiregistry/ h/$1/
+# 0x4e = ProtocolAck. 0x4f = ProtocolNotSupported.
+# 4th byte begins client host ID, which is usually IP address
+match java-rmi m|^\x4e..[0-9a-f:.]+\0\0..$|s p/Java RMI/
+# GNU Classpath does reverse-lookup of hostname
+match java-rmi m|^\x4e..[\w._-]+\0\0..$|s p/GNU Classpath grmiregistry/
 
 # https://github.com/quine/GoProGTFO
 match gopro-json m|^\{"rval": -7, "param_size": 0 \}\0| p/GoPro or similar camera json service/ d/webcam/
@@ -15539,7 +15573,7 @@ match serialnumber m|^SNRESPS:([\w._-]+):(0x[0-9A-F]{40}):xsvr:(0x[0-9A-F]{40}):
 ##############################NEXT PROBE##############################
 # Lotus Domino Console
 #
-Probe TCP dominoconsole q|\#ST\n|
+Probe TCP dominoconsole q|#ST\n|
 rarity 8
 sslports 2050
 
@@ -15548,7 +15582,7 @@ match dominoconsole m|^([^/]+)/([\w._-]+):([^:]*):([^:]*):| p/Lotus Domino Conso
 ##############################NEXT PROBE##############################
 # Informix probe
 #
-Probe TCP informix q|\0\x94\x01\x3c\0\0\0\x64\0\x65\0\0\0\x3d\0\x06IEEEM\0\0lsqlexec\0\0\0\0\0\0\x069.280\0\0\x0cRDS\#R000000\0\0\x05sqli\0\0\0\x01\x33\0\0\0\0\0\0\0\0\0\x01\0\x05nmap\0\0\x05nmap\0ol\0\0\0\0\0\0\0\0\0=tlitcp\0\0\0\0\0\x01\0\x68\0\x0b\0\0\0\x03\0\x05nmap\0\0\0\0\0\0\0\0\0\0\0\0\x6a\0\0\0\x7f|
+Probe TCP informix q|\0\x94\x01\x3c\0\0\0\x64\0\x65\0\0\0\x3d\0\x06IEEEM\0\0lsqlexec\0\0\0\0\0\0\x069.280\0\0\x0cRDS#R000000\0\0\x05sqli\0\0\0\x01\x33\0\0\0\0\0\0\0\0\0\x01\0\x05nmap\0\0\x05nmap\0ol\0\0\0\0\0\0\0\0\0=tlitcp\0\0\0\0\0\x01\0\x68\0\x0b\0\0\0\x03\0\x05nmap\0\0\0\0\0\0\0\0\0\0\0\0\x6a\0\0\0\x7f|
 rarity 8
 ports 1526,9088-9100
 
@@ -15571,7 +15605,7 @@ match oo-defrag m|^\x10\0\0\0\x01\0\0\0\x03\0\0\0\r\x08\0\0\x02\0{7}j\0\0\0\x01\
 ##############################NEXT PROBE##############################
 # MQ Initial Packet Queue-manager=nmap-probe; channel=SYSTEM.ADMIN.SRVCONN
 #
-Probe TCP ibm-mqseries q|TSH\x20\x00\x00\x00\xEC\x01\x01\x31\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x11\x04\xB8\x00\x00\x49\x44\x20\x20\x0A\x26\x00\x00\x00\x00\x00\x00\x00\x00\x7F\xF6\x06\x40\x00\x00\x00\x00\x00\x00SYSTEM\.ADMIN\.SVRCONN\x51\x00\x04\xB8nmap-probe\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x00\x00\x00\x01\x00\x6A\x00\x00\x00\xFF\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02MQJB00000000CANNED_DATA\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20|
+Probe TCP ibm-mqseries q|TSH\x20\x00\x00\x00\xEC\x01\x01\x31\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x11\x04\xB8\x00\x00\x49\x44\x20\x20\x0A\x26\x00\x00\x00\x00\x00\x00\x00\x00\x7F\xF6\x06\x40\x00\x00\x00\x00\x00\x00SYSTEM.ADMIN.SVRCONN\x51\x00\x04\xB8nmap-probe\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x00\x00\x00\x01\x00\x6A\x00\x00\x00\xFF\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02MQJB00000000CANNED_DATA\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20|
 rarity 8
 ports 1414-1420
 
@@ -15585,7 +15619,7 @@ softmatch ibm-mqseries m|^TSH\x20\0\0\0| p/IBM WebSphere MQ/ cpe:/a:ibm:webspher
 ##############################NEXT PROBE##############################
 # Queries iPhoto for the /server-info url containing the shared library name
 #
-Probe TCP apple-iphoto q|GET /server-info HTTP/1.1\r\nClient-DPAP-Version: 1\.1\r\nUser-Agent: iPhoto/9.1.1  (Macintosh; N; PPC)\r\n\r\n|
+Probe TCP apple-iphoto q|GET /server-info HTTP/1.1\r\nClient-DPAP-Version: 1.1\r\nUser-Agent: iPhoto/9.1.1  (Macintosh; N; PPC)\r\n\r\n|
 rarity 8
 ports 8770
 
@@ -15690,7 +15724,7 @@ match pc-duo-gw m|^.........(.*)\0|s p/Vector PC-Duo Gateway Server/ i/Servernam
 
 ##############################NEXT PROBE##############################
 # Redis key-value store
-Probe TCP redis-server q|\*1\r\n\$4\r\ninfo\r\n|
+Probe TCP redis-server q|*1\r\n$4\r\ninfo\r\n|
 rarity 8
 ports 6379
 match redis m|-ERR operation not permitted\r\n|s p/Redis key-value store/
@@ -16256,6 +16290,36 @@ ports 4533
 
 # Maybe rigctld also?
 match rotctld m|^get_info: (.*)\nRPRT 0\n| p/Hamlib rotctld/ i/model: $1/
+
+##############################NEXT PROBE##############################
+# Ubiquiti Discovery Protocol
+Probe UDP UbiquitiDiscoveryv1 q|\x01\0\0\0|
+rarity 9
+ports 10001
+
+# Valid response is protocol version (\x01) and cmd (\0) followed
+# by 2 bytes of length then TLV groups
+match ubiquiti-discovery m|^\x01\0.[^\0].*\x0c\0\x06AirCam|s p/Ubiquiti Discovery Service/ i/v1 protocol, AirCam/ cpe:/h:ubnt:aircam:/
+match ubiquiti-discovery m|^\x01\0.[^\0].*\x0c\0\nAirCamDome|s p/Ubiquiti Discovery Service/ i/v1 protocol, AirCamDome/ cpe:/h:ubnt:aircam_dome:/
+
+# Match short model name = \x0c followed by 2 byte len then value
+# No known type bytes fall in \w the following regex should be safe
+match ubiquiti-discovery m|^\x01\0.[^\0].*\x0c\0.([\w-]+)|s p/Ubiquiti Discovery Service/ i/v1 protocol, $1/
+
+softmatch ubiquiti-discovery m|^\x01\0.[^\0].{48}|s p/Ubiquiti Discovery Service/ i/v1 protocol/
+
+##############################NEXT PROBE##############################
+# Ubiquiti Discovery Protocol
+Probe UDP UbiquitiDiscoveryv2 q|\x02\x08\0\0|
+rarity 9
+ports 10001
+
+# Valid response is protocol version (\x02 ) and cmd followed
+# by 2 bytes of length then TLV groups
+# Known cmd values are \x06, \x09, and \x0b
+match ubiquiti-discovery m|^\x02[\x06\x09\x0b].[^\0].*\x15\0.([\w-]+)\x16\0.([\d.]+)|s p/Ubiquiti Discovery Service/ i/v2 protocol, $1 software ver. $2/
+match ubiquiti-discovery m|^\x02[\x06\x09\x0b].[^\0].*\x15\0.([\w-]+)|s p/Ubiquiti Discovery Service/ i/v2 protocol, $1/
+softmatch ubiquiti-discovery m|^\x02[\x06\x09\x0b].[^\0].{48}|s p/Ubiquiti Discovery Service/ i/v2 protocol/
 
 ##############################NEXT PROBE##############################
 # Sharp TV IP/Serial remote control protocol

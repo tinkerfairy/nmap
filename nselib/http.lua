@@ -112,8 +112,6 @@
 
 
 local base64 = require "base64"
-local bin = require "bin"
-local bit = require "bit"
 local comm = require "comm"
 local coroutine = require "coroutine"
 local nmap = require "nmap"
@@ -123,7 +121,9 @@ local shortport = require "shortport"
 local slaxml = require "slaxml"
 local stdnse = require "stdnse"
 local string = require "string"
+local stringaux = require "stringaux"
 local table = require "table"
+local tableaux = require "tableaux"
 local url = require "url"
 local smbauth = require "smbauth"
 local unicode = require "unicode"
@@ -136,20 +136,6 @@ local have_ssl, openssl = pcall(require,'openssl')
 USER_AGENT = stdnse.get_script_args('http.useragent') or "Mozilla/5.0 (compatible; Nmap Scripting Engine; https://nmap.org/book/nse.html)"
 local host_header = stdnse.get_script_args('http.host')
 local MAX_REDIRECT_COUNT = 5
-
--- Recursively copy a table.
--- Only recurs when a value is a table, other values are copied by assignment.
-local function tcopy (t)
-  local tc = {};
-  for k,v in pairs(t) do
-    if type(v) == "table" then
-      tc[k] = tcopy(v);
-    else
-      tc[k] = v;
-    end
-  end
-  return tc;
-end
 
 --- Recursively copy into a table any elements from another table whose key it
 -- doesn't have.
@@ -170,18 +156,34 @@ local get_default_port = url.get_default_port
 
 --- Get a value suitable for the Host header field.
 -- See RFC 2616 sections 14.23 and 5.2.
-local function get_host_field(host, port)
+local function get_host_field(host, port, scheme)
+  -- If the global header is set by script-arg, use that.
   if host_header then return host_header end
+  -- If there's no host, we can't invent a name.
   if not host then return nil end
   if type(port) == "number" then
-    port = {number=port, protocol="tcp", state="open"}
+    port = {number=port, protocol="tcp"}
   end
-  local scheme = shortport.ssl(host, port) and "https" or "http"
-  if port.number == get_default_port(scheme) then
-    return stdnse.get_hostname(host)
+  local number = port.number
+  if scheme then
+    -- Caller provided scheme. If it's default, return just the hostname.
+    if number == get_default_port(scheme) then
+      return stdnse.get_hostname(host)
+    end
   else
-    return stdnse.get_hostname(host) .. ":" .. port.number
+    scheme = url.get_default_scheme(port)
+    if scheme then
+      -- Caller did not provide scheme, and this port has a default scheme.
+      local ssl_port = shortport.ssl(host, port)
+      if (ssl_port and scheme == 'https') or
+        (not ssl_port and scheme == 'http') then
+        -- If it's SSL and https, or if it's plaintext and http, return just the hostname.
+        return stdnse.get_hostname(host)
+      end
+    end
   end
+  -- No special cases matched, so include the port number in the host header
+  return stdnse.get_hostname(host) .. ":" .. number
 end
 
 -- Skip *( SP | HT ) starting at offset. See RFC 2616, section 2.2.
@@ -367,6 +369,11 @@ local function validate_options(options)
     elseif(key == 'redirect_ok') then
       if(type(value)~= 'function' and type(value)~='boolean' and type(value) ~= 'number') then
         stdnse.debug1("http: options.redirect_ok must be a function or boolean or number")
+        bad = true
+      end
+    elseif(key == 'scheme') then
+      if type(value) ~= 'string' then
+        stdnse.debug1("http: options.scheme must be a string")
         bad = true
       end
     else
@@ -686,7 +693,7 @@ local function parse_header(header, response)
   local s, e
 
   response.header = {}
-  response.rawheader = stdnse.strsplit("\r?\n", header)
+  response.rawheader = stringaux.strsplit("\r?\n", header)
   pos = 1
   while pos <= #header do
     -- Get the field name.
@@ -864,9 +871,9 @@ local function getPipelineMax(response)
 
   if response then
     local hdr = response.header or {}
-    local opts = stdnse.strsplit("%s+", (hdr.connection or ""):lower())
-    if stdnse.contains(opts, "close") then return 1 end
-    if response.version >= "1.1" or stdnse.contains(opts, "keep-alive") then
+    local opts = stringaux.strsplit("%s+", (hdr.connection or ""):lower())
+    if tableaux.contains(opts, "close") then return 1 end
+    if response.version >= "1.1" or tableaux.contains(opts, "keep-alive") then
       return tonumber((hdr["keep-alive"] or ""):match("max=(%d+)")) or 40
     end
   end
@@ -976,7 +983,7 @@ local function lookup_cache (method, host, port, path, options)
     else
       mutex "done";
       record.last_used = os.time();
-      return tcopy(record.result), state;
+      return tableaux.tcopy(record.result), state;
     end
   end
 end
@@ -1019,7 +1026,7 @@ local function insert_cache (state, response)
     cache[key] = state.old_record;
   else
     local record = {
-      result = tcopy(response),
+      result = tableaux.tcopy(response),
       last_used = os.time(),
       method = state.method,
       size = type(response.body) == "string" and #response.body or 0,
@@ -1089,7 +1096,7 @@ local function build_request(host, port, method, path, options)
   local mod_options = {
     header = {
       Connection = "close",
-      Host = get_host_field(host, port),
+      Host = get_host_field(host, port, options.scheme),
       ["User-Agent"]  = USER_AGENT
     }
   }
@@ -1164,7 +1171,23 @@ local function build_request(host, port, method, path, options)
     header[#header + 1] = name..": "..value
   end
 
-  return request_line .. "\r\n" .. stdnse.strjoin("\r\n", header) .. "\r\n\r\n" .. (body or "")
+  return request_line .. "\r\n" .. table.concat(header, "\r\n") .. "\r\n\r\n" .. (body or "")
+end
+
+--- A wrapper for comm.tryssl that strictly obeys options.scheme. If it is
+--  "https" then only SSL connection is attempted. If "http" then there is no
+--  HTTPS fallback.
+local function do_connect(host, port, data, options)
+  if options.scheme == "https" or options.scheme == "http" then
+    -- If the scheme is specifically requested (e.g.
+    -- get_url("https://example.com")) then don't fall back.
+    return comm.opencon(host, port, data, {
+        timeout = options.timeout,
+        any_af = options.any_af,
+        proto = (options.scheme == "https" and "ssl" or "tcp"),
+        })
+  end
+  return comm.tryssl(host, port, data, {timeout = options.timeout, any_af = options.any_af})
 end
 
 --- Send a string to a host and port and return the HTTP result. This function
@@ -1200,7 +1223,7 @@ local function request(host, port, data, options)
 
   method = string.match(data, "^(%S+)")
 
-  local socket, partial, opts = comm.tryssl(host, port, data, {timeout = options.timeout, any_af = options.any_af})
+  local socket, partial, opts = do_connect(host, port, data, options)
 
   if not socket then
     stdnse.debug1("http.request socket error: %s", partial)
@@ -1256,7 +1279,7 @@ function generic_request(host, port, method, path, options)
   if digest_auth and have_ssl then
     -- If we want to do digest authentication, we have to make an initial
     -- request to get realm, nonce and other fields.
-    local options_with_auth_removed = tcopy(options)
+    local options_with_auth_removed = tableaux.tcopy(options)
     options_with_auth_removed["auth"] = nil
     local r = generic_request(host, port, method, path, options_with_auth_removed)
     local h = r.header['www-authenticate']
@@ -1272,7 +1295,7 @@ function generic_request(host, port, method, path, options)
 
   if ntlm_auth and have_ssl then
 
-    local custom_options = tcopy(options) -- to be sent with the type 1 request
+    local custom_options = tableaux.tcopy(options) -- to be sent with the type 1 request
     custom_options["auth"] = nil -- removing the auth options
     -- let's check if the target supports ntlm with a simple get request.
     -- Setting a timeout here other than nil messes up the authentication if this is the first device sending
@@ -1298,9 +1321,9 @@ function generic_request(host, port, method, path, options)
 
     local auth_blob = "NTLMSSP\x00" .. -- NTLM signature
     "\x01\x00\x00\x00" .. -- NTLM Type 1 message
-    bin.pack("<I", 0xa208b207) .. -- flags 56, 128, Version, Extended Security, Always Sign, Workstation supplied, Domain Supplied, NTLM Key, OEM, Unicode
-    bin.pack("<SSISSI",#workstation_name, #workstation_name, 40 + #hostname, #hostname, #hostname, 40) .. -- Supplied Domain and Workstation
-    bin.pack("CC<S", -- OS version info
+    string.pack("<I4", 0xa208b207) .. -- flags 56, 128, Version, Extended Security, Always Sign, Workstation supplied, Domain Supplied, NTLM Key, OEM, Unicode
+    string.pack("<I2I2I4 I2I2I4",#workstation_name, #workstation_name, 40 + #hostname, #hostname, #hostname, 40) .. -- Supplied Domain and Workstation
+    string.pack("BB<I2", -- OS version info
     5, 1, 2600) .. -- 5.1.2600
     "\x00\x00\x00\x0f" .. -- OS version info end (static 0x0000000f)
     hostname.. -- HOST NAME
@@ -1316,8 +1339,8 @@ function generic_request(host, port, method, path, options)
       end
     end
 
-    -- tryssl uses ssl if needed. sends the type 1 message.
-    local socket, partial, opts = comm.tryssl(host, port, build_request(host, port, method, path, custom_options), { timeout = options.timeout })
+    -- sends the type 1 message.
+    local socket, partial, opts = do_connect(host, port, build_request(host, port, method, path, custom_options), options)
 
     if not socket then
       return http_error("Could not create socket to send type 1 message.")
@@ -1334,15 +1357,15 @@ function generic_request(host, port, method, path, options)
     authentication_header = response.header['www-authenticate']
     -- take out the challenge
     local type2_response = authentication_header:sub(authentication_header:find(' ')+1, -1)
-    local _, _, message_type, _, _, _, flags_received, challenge= bin.unpack("<A8ISSIIA8", base64.dec(type2_response))
+    local _, message_type, _, _, _, flags_received, challenge= string.unpack("<c8 I4 I2I2I4 I4 c8", base64.dec(type2_response))
     -- check if the response is a type 2 message.
     if message_type ~= 0x02 then
       stdnse.debug1("Expected type 2 message as response.")
       return
     end
 
-    local is_unicode  = (bit.band(flags_received, 0x00000001) == 0x00000001) -- 0x00000001 UNICODE Flag
-    local is_extended = (bit.band(flags_received, 0x00080000) == 0x00080000) -- 0x00080000 Extended Security Flag
+    local is_unicode  = ((flags_received & 0x00000001) == 0x00000001) -- 0x00000001 UNICODE Flag
+    local is_extended = ((flags_received & 0x00080000) == 0x00080000) -- 0x00080000 Extended Security Flag
     local type_3_flags = 0xa2888206 -- flags 56, 128, Version, Target Info, Extended Security, Always Sign, NTLM Key, OEM
 
     local lanman, ntlm
@@ -1366,7 +1389,7 @@ function generic_request(host, port, method, path, options)
 
     local BASE_OFFSET = 72 -- Version 3 -- The Session Key<empty in our case>, flags, and OS Version structure are all present.
 
-    auth_blob = bin.pack("<zISSISSISSISSISSISSIICCSAAAAA",
+    auth_blob = string.pack("<z I4 I2I2I4 I2I2I4 I2I2I4 I2I2I4 I2I2I4 I2I2I4 I4 BBI2",
       "NTLMSSP",
       0x00000003,
       #lanman,
@@ -1390,12 +1413,12 @@ function generic_request(host, port, method, path, options)
       type_3_flags,
       5,
       1,
-      2600,
-      "\x00\x00\x00\x0f",
-      username,
-      hostname,
-      lanman,
-      ntlm)
+      2600)
+    .. "\x00\x00\x00\x0f"
+    .. username
+    .. hostname
+    .. lanman
+    .. ntlm
 
     custom_options.ntlmauth = auth_blob
     socket:send(build_request(host, port, method, path, custom_options))
@@ -1607,6 +1630,7 @@ function get(host, port, path, options)
   if(not(validate_options(options))) then
     return http_error("Options failed to validate.")
   end
+  options = options or {}
   local redir_check = get_redirect_ok(host, port, options)
   local response, state, location
   local u = { host = host, port = port, path = path }
@@ -1620,6 +1644,8 @@ function get(host, port, path, options)
     if ( not(u) ) then
       break
     end
+    -- Allow redirect to change scheme (e.g. redirect to https)
+    options.scheme = u.scheme or options.scheme
     location = location or {}
     table.insert(location, response.header.location)
   until( not(redir_check(u)) )
@@ -1643,6 +1669,7 @@ function get_url( u, options )
 
   port.service = parsed.scheme
   port.number = parsed.port or get_default_port(parsed.scheme) or 80
+  options.scheme = options.scheme or parsed.scheme
 
   local path = parsed.path or "/"
   if parsed.query then
@@ -1681,6 +1708,7 @@ function head(host, port, path, options)
   if(not(validate_options(options))) then
     return http_error("Options failed to validate.")
   end
+  options = options or {}
   local redir_check = get_redirect_ok(host, port, options)
   local response, state, location
   local u = { host = host, port = port, path = path }
@@ -1694,6 +1722,8 @@ function head(host, port, path, options)
     if ( not(u) ) then
       break
     end
+    -- Allow redirect to change scheme (e.g. redirect to https)
+    options.scheme = u.scheme or options.scheme
     location = location or {}
     table.insert(location, response.header.location)
   until( not(redir_check(u)) )
@@ -2008,22 +2038,11 @@ end
 -- @param endtag Boolean true if you are looking for an end tag, otherwise it will look for a start tag
 -- @return A pattern to find the tag
 function tag_pattern(tag, endtag)
-  local patt = {}
   if endtag then
-    patt[1] = "</%s*"
+    return "</%s*" .. stringaux.ipattern(tag) .. "%f[%s>].->"
   else
-    patt[1] = "<%s*"
+    return "<%s*" .. stringaux.ipattern(tag) .. "%f[%s/>].->"
   end
-  local up, down = tag:upper(), tag:lower()
-  for i = 1, #tag do
-    patt[#patt+1] = string.format("[%s%s]", up:sub(i,i), down:sub(i,i))
-  end
-  if endtag then
-    patt[#patt+1] = "%f[%s>].->"
-  else
-    patt[#patt+1] = "%f[%s/>].->"
-  end
-  return table.concat(patt)
 end
 
 ---
@@ -2742,9 +2761,9 @@ function save_path(host, port, path, status, links_to, linked_from, contenttype)
   -- Split up the query, if necessary
   if(parsed['raw_querystring']) then
     parsed['querystring'] = {}
-    local values = stdnse.strsplit('&', parsed['raw_querystring'])
+    local values = stringaux.strsplit('&', parsed['raw_querystring'])
     for i, v in ipairs(values) do
-      local name, value = table.unpack(stdnse.strsplit('=', v))
+      local name, value = table.unpack(stringaux.strsplit('=', v))
       parsed['querystring'][name] = value
     end
   end
